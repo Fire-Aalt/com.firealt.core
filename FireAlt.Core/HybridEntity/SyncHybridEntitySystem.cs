@@ -41,7 +41,7 @@ namespace FireAlt.Core
             SyncMarker.Begin();
             state.Dependency = new SyncTransformsJob
             {
-                Entities = singleton.ReusableTransformAccessArray.AlignedEntities.AsDeferredJobArray(),
+                Entities = singleton.ReusableTransformAccessArray.AlignedData.AsDeferredJobArray(),
                 LocalToWorld = SystemAPI.GetComponentLookup<LocalToWorld>(),
                 LocalTransform = SystemAPI.GetComponentLookup<LocalTransform>(),
                 PostTransformMatrix = SystemAPI.GetComponentLookup<PostTransformMatrix>(),

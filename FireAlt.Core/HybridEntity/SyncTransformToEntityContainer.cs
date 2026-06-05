@@ -7,11 +7,11 @@ namespace FireAlt.Core
 {
     public struct SyncTransformToEntityContainer : IComponentData, IDisposable
     {
-        public ReusableTransformAccessArray ReusableTransformAccessArray;
+        public ReusableTransformAccessArray<Entity> ReusableTransformAccessArray;
         
         public SyncTransformToEntityContainer(int initialCapacity, Allocator allocator)
         {
-            ReusableTransformAccessArray = new ReusableTransformAccessArray(initialCapacity, allocator);
+            ReusableTransformAccessArray = new ReusableTransformAccessArray<Entity>(initialCapacity, allocator);
         }
         
         public void Dispose()

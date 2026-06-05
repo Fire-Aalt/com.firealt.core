@@ -1,32 +1,34 @@
 using System;
 using Unity.Collections;
-using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Jobs;
 
 namespace FireAlt.Core.Collections
 {
-    public struct ReusableTransformAccessArray : IDisposable
+    public struct ReusableTransformAccessArray<T> : IDisposable 
+        where T : unmanaged
     {
         public TransformAccessArray Array => _array;
-        public NativeList<Entity> AlignedEntities => _alignedEntities;
+        public NativeList<T> AlignedData => _alignedData;
 
         private TransformAccessArray _array;
-        private NativeList<Entity> _alignedEntities;
+        private NativeList<T> _alignedData;
         private NativeHashSet<int> _freeIds;
         
         public ReusableTransformAccessArray(int initialCapacity, Allocator allocator)
         {
             _array = new TransformAccessArray(initialCapacity);
-            _alignedEntities = new NativeList<Entity>(initialCapacity, allocator);
+            _alignedData = new NativeList<T>(initialCapacity, allocator);
             _freeIds = new NativeHashSet<int>(initialCapacity, allocator);
         }
+        
+        public bool IsEmpty => _freeIds.Count == _alignedData.Length;
         
         /// <summary>
         /// Adds transform to the transform container,
         /// and assigns an id for the referencing
         /// </summary>
-        public int AddTransform(Entity entity, Transform trm)  // TODO: In 6.7 LTS use EntityId to make it fully unmanaged
+        public int AddTransformHandle(TransformHandle transformHandle, T data)
         {
             int refId;
 
@@ -41,8 +43,8 @@ namespace FireAlt.Core.Collections
 
                 _freeIds.Remove(refId);
             
-                _array[refId] = trm;
-                _alignedEntities[refId] = entity;
+                _array.SetTransformHandle(refId, transformHandle);
+                _alignedData[refId] = data;
             
                 return refId;
             }
@@ -50,12 +52,12 @@ namespace FireAlt.Core.Collections
             // Otherwise generate id / add transform and return new refId
             refId = _array.length;
          
-            _array.Add(trm);
-            _alignedEntities.Add(entity);
+            _array.Add(transformHandle);
+            _alignedData.Add(data);
 
             return refId;
         }
-
+        
         /// <summary>
         /// Releases transform reference from the transform container. 
         /// <remarks>Cannot be used in Burst context.</remarks>
@@ -66,7 +68,7 @@ namespace FireAlt.Core.Collections
             
             _freeIds.Add(id);
             _array.SetTransformHandle(id, default);
-            _alignedEntities[id] = Entity.Null;
+            _alignedData[id] = default;
             
             return transform;
         }
@@ -79,13 +81,13 @@ namespace FireAlt.Core.Collections
         {
             _freeIds.Add(id);
             _array.SetTransformHandle(id, default);
-            _alignedEntities[id] = Entity.Null;
+            _alignedData[id] = default;
         }
         
         public void Dispose()
         {
             _array.Dispose();
-            _alignedEntities.Dispose();
+            _alignedData.Dispose();
             _freeIds.Dispose();
         }
     }

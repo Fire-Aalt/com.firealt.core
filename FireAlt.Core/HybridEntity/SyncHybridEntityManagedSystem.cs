@@ -38,7 +38,7 @@ namespace FireAlt.Core
                 {
                     initEcb.AddComponent(self, new SyncTransformToEntity
                     {
-                        TransformId = singleton.ReusableTransformAccessArray.AddTransform(self, link.ValueRO.MonoBehaviour.Value.transform)
+                        TransformId = singleton.ReusableTransformAccessArray.AddTransformHandle(link.ValueRO.MonoBehaviour.Value.transformHandle, self)
                     });
                 }
                 
