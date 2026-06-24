@@ -16,6 +16,21 @@ namespace FireAlt.Core.Quill
             DrawerImpl.Square(position, size, math.up(), out var p0, out var p1, out var p2, out var p3);
             drawer.Quad(p0, p1, p2, p3, color, duration);
         }
+
+        public static void Ellipse(this Drawer drawer, float3 center, float2 size, float3 up, int sideCount, Color color, float duration = 0f)
+        {
+            if (!drawer.IsEnabled) return;
+            sideCount = math.max(3, sideCount);
+            using var pooledLines = NativeListPool<float3>.Rent(sideCount * 2);
+
+            var lines = DrawerImpl.Ellipse(pooledLines, center, size, up, sideCount);
+            drawer.Lines(lines, color, duration);
+        }
+
+        public static void EllipseXZ(this Drawer drawer, float3 center, float2 size, Color color, float duration = 0f, int sideCount = 32)
+        {
+            Ellipse(drawer, center, size, math.up(), sideCount, color, duration);
+        }
         
         public static void CapsuleFromPoints(this Drawer drawer, float3 start, float3 end, float radius, int sideCount, Color color, float duration = 0f)
         {

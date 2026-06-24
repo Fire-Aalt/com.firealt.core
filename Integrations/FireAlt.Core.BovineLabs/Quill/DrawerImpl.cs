@@ -57,6 +57,32 @@ namespace FireAlt.Core.Quill
             return triangles;
         }
 
+        public static NativeArray<float3> Ellipse(PooledNativeList<float3> pooledLines, float3 center, float2 size, float3 up, int sideCount)
+        {
+            Assert.IsTrue(size.x > 0f, "Size X must be greater than 0.");
+            Assert.IsTrue(size.y > 0f, "Size Y must be greater than 0.");
+            Assert.IsTrue(sideCount >= 3, "SideCount must be greater than or equal to 3.");
+            Assert.IsTrue(math.lengthsq(up) > 1e-6f, "Up vector must have a non-zero length.");
+
+            var lines = pooledLines.AsArray(sideCount * 2);
+            var upNormalized = math.normalize(up);
+            var rotation = mathex.RotationFromUpToDirection(upNormalized, math.up());
+            var extents = size * 0.5f;
+            var previous = center + math.mul(rotation, new float3(extents.x, 0f, 0f));
+
+            for (var side = 0; side < sideCount; side++)
+            {
+                var theta = (2f * math.PI * (side + 1)) / sideCount;
+                var next = center + math.mul(rotation, new float3(math.cos(theta) * extents.x, 0f, math.sin(theta) * extents.y));
+                var lineIndex = side * 2;
+                lines[lineIndex] = previous;
+                lines[lineIndex + 1] = next;
+                previous = next;
+            }
+
+            return lines;
+        }
+
         public static NativeArray<float3x3> SolidSphere(PooledNativeList<float3x3> pooledTriangles, float3 center, float radius, int sideCount)
         {
             Assert.IsTrue(radius > 0f, "Radius must be greater than 0.");
