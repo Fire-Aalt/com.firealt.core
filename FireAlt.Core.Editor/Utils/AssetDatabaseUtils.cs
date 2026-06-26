@@ -167,7 +167,8 @@ namespace FireAlt.Core.Editor
 
             if (objectList.Count == 1)
             {
-                return objectList[0] as T;
+                var obj = objectList[0] as T;
+                return obj;
             }
 
             if (objectList.Count > 1)
