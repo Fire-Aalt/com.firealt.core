@@ -23,15 +23,6 @@ namespace FireAlt.Core.Utility
         
         public static float3 ForwardXZFromLocalToWorld(float4x4 localToWorld)
         {
-            // float3 right = mul(new quaternion(localToWorld), new float3(1f, 0f, 0f));
-            // float3 dir = new float3(right.x, 0f, right.z);
-            //
-            // float lenSq = lengthsq(dir);
-            // if (lenSq > EPSILON * EPSILON)
-            //     return dir * rsqrt(lenSq);
-            //
-            // return new float3(0f, 0f, 1f);
-            
             // Use right (local +X) projected to XZ
             var right = new float3(localToWorld.c0.x, localToWorld.c0.y, localToWorld.c0.z);
             var dir = new float3(right.x, 0f, right.z);

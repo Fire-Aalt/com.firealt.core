@@ -61,5 +61,22 @@ namespace FireAlt.Core.Extensions
         {
             return new float3(math.length(matrix.c0.xyz), math.length(matrix.c1.xyz), math.length(matrix.c2.xyz));
         }
+        
+        /// <summary>
+        /// Works for negative scales
+        /// </summary>
+        /// <param name="m"></param>
+        /// <param name="matrixRotation"></param>
+        /// <returns></returns>
+        public static float3 ExtractCorrectScale(this float4x4 m, quaternion matrixRotation)
+        {
+            var r = new float3x3(matrixRotation);
+
+            var sx = math.dot(m.c0.xyz, r.c0);
+            var sy = math.dot(m.c1.xyz, r.c1);
+            var sz = math.dot(m.c2.xyz, r.c2);
+
+            return new float3(sx, sy, sz);
+        }
     }
 }
