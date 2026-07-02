@@ -1,3 +1,4 @@
+using BovineLabs.Essence;
 using Unity.Entities;
 
 namespace FireAlt.Core
@@ -29,13 +30,14 @@ namespace FireAlt.Core
         }
 
 #if BL_ESSENSE
-        public static BovineLabs.Essence.IntrinsicWriter.Lookup GetIntrinsicLookup(ref SystemState state)
+        public static IntrinsicWriter.Lookup GetIntrinsicLookup(ref SystemState state)
         {
-            GetWorld(out var world);
-            
-            var lookup = new BovineLabs.Essence.IntrinsicWriter.Lookup();
+            var lookup = new IntrinsicWriter.Lookup();
+            var data = new IntrinsicWriter.SingletonData();
             lookup.Create(ref state);
-            lookup.Update(ref state, world.EntityManager.GetUnmanagedSingleton<BovineLabs.Essence.Data.EssenceConfig>());
+            data.Create(ref state);
+         
+            lookup.Update(ref state, data);
 
             return lookup;
         }
