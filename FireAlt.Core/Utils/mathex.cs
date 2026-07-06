@@ -31,6 +31,40 @@ namespace FireAlt.Core.Utility
             
             return new float3(0f, 0f, 1f);
         }
+
+        public static float3 TransformAabbCenter(float4x4 localToWorld, AABB localAabb)
+        {
+            return transform(localToWorld, localAabb.Center);
+        }
+
+        public static float3 TransformAabbExtents(float4x4 localToWorld, float3 localExtents)
+        {
+            return abs(localToWorld.c0.xyz) * localExtents.x
+                + abs(localToWorld.c1.xyz) * localExtents.y
+                + abs(localToWorld.c2.xyz) * localExtents.z;
+        }
+
+        public static AABB TransformAabb(float4x4 localToWorld, AABB localAabb)
+        {
+            return new AABB
+            {
+                Center = TransformAabbCenter(localToWorld, localAabb),
+                Extents = TransformAabbExtents(localToWorld, localAabb.Extents),
+            };
+        }
+
+        public static float TransformAabbMinY(float4x4 localToWorld, AABB localAabb)
+        {
+            var center = TransformAabbCenter(localToWorld, localAabb);
+            var extents = TransformAabbExtents(localToWorld, localAabb.Extents);
+            return center.y - extents.y;
+        }
+
+        public static void TransformAabbAxesXZ(float4x4 localToWorld, AABB localAabb, out float2 axisX, out float2 axisZ)
+        {
+            axisX = localToWorld.c0.xz * localAabb.Extents.x;
+            axisZ = localToWorld.c2.xz * localAabb.Extents.z;
+        }
         
         public static float AngleBetweenDegrees(float2 a, float2 b)
         {
