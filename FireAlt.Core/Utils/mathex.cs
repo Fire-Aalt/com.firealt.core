@@ -12,6 +12,7 @@ namespace FireAlt.Core.Utility
     {
         public static bool ApproximatelyEqual(float a, float b)
         {
+            const float EPSILON = 1e-4f;
             return abs(a - b) > EPSILON;
         }
         
