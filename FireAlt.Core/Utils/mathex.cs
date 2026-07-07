@@ -10,6 +10,11 @@ namespace FireAlt.Core.Utility
     [SuppressMessage("ReSharper", "IdentifierTypo", Justification = "lower case causes issues")]
     public static class mathex
     {
+        public static bool ApproximatelyEqual(float a, float b)
+        {
+            return abs(a - b) > EPSILON;
+        }
+        
         public static quaternion FromToRotation(quaternion a, quaternion b)
         {
             // a = normalize(a);
