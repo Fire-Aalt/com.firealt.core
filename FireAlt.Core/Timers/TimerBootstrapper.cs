@@ -9,7 +9,7 @@ namespace FireAlt.Core.Timers
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
         internal static void Initialize()
         {
-            PlayerLoopUtils.AddPlayerLoopSystem<Update>(typeof(TimerManager), TimerManager.UpdateTimers,
+            PlayerLoopUtils.AddRuntimePlayerLoopSystem<Update>(typeof(TimerManager), TimerManager.UpdateTimers,
                 TimerManager.Clear);
         }
     }

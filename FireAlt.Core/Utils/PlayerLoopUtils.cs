@@ -10,33 +10,27 @@ namespace FireAlt.Core.Utility
     public static class PlayerLoopUtils
     {
         /// <summary>
-        /// Adds an update callback that will be called both in editor and at runtime
+        /// Adds an update callback that will be called on update
         /// </summary>
         public static bool AddPlayerLoopSystem<TTiming>(Type type, Action updateCallback)
         {
-            return AddPlayerLoopSystem<TTiming>(type, updateCallback, null);
+            return AddPlayerLoopSystem_Internal<TTiming>(type, updateCallback, out _);
+        }
+        
+        /// <summary>
+        /// Adds an update callback that will be called both in editor and at runtime
+        /// </summary>
+        public static bool AddRuntimePlayerLoopSystem<TTiming>(Type type, Action updateCallback)
+        {
+            return AddRuntimePlayerLoopSystem<TTiming>(type, updateCallback, null);
         }
         
         /// <summary>
         /// Adds an update callback that will be called at runtime
         /// </summary>
-        public static bool AddPlayerLoopSystem<TTiming>(Type type, Action updateCallback, Action disposeCallback)
+        public static bool AddRuntimePlayerLoopSystem<TTiming>(Type type, Action updateCallback, Action disposeCallback)
         {
-            var currentPlayerLoop = PlayerLoop.GetCurrentPlayerLoop();
-
-            var system = new PlayerLoopSystem
-            {
-                type = type,
-                updateDelegate = () => updateCallback(),
-                subSystemList = null
-            };
-            
-            if (!InsertSystem<TTiming>(ref currentPlayerLoop, system, 0))
-            {
-                Debug.LogWarning($"{system.type} not initialized, unable to register {system.type} into the Update loop.");
-                return false;
-            }
-            PlayerLoop.SetPlayerLoop(currentPlayerLoop);
+            AddPlayerLoopSystem_Internal<TTiming>(type, updateCallback, out var system);
             
 #if UNITY_EDITOR
             EditorApplication.playModeStateChanged -= OnPlayModeStateUpdateLoop;
@@ -109,7 +103,27 @@ namespace FireAlt.Core.Utility
             }
             Debug.Log(sb.ToString());
         }
+        
+        private static bool AddPlayerLoopSystem_Internal<TTiming>(Type type, Action updateCallback, out PlayerLoopSystem system)
+        {
+            var currentPlayerLoop = PlayerLoop.GetCurrentPlayerLoop();
 
+            system = new PlayerLoopSystem
+            {
+                type = type,
+                updateDelegate = () => updateCallback(),
+                subSystemList = null
+            };
+            
+            if (!InsertSystem<TTiming>(ref currentPlayerLoop, system, 0))
+            {
+                Debug.LogWarning($"{system.type} not initialized, unable to register {system.type} into the Update loop.");
+                return false;
+            }
+            PlayerLoop.SetPlayerLoop(currentPlayerLoop);
+            return true;
+        }
+        
         private static void HandleSubSystemLoopForRemoval<T>(ref PlayerLoopSystem loop, PlayerLoopSystem systemToRemove)
         {
             if (loop.subSystemList == null) return;
