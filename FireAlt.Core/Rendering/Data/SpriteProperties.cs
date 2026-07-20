@@ -1,4 +1,6 @@
 using System;
+using System.Diagnostics;
+using JetBrains.Annotations;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -18,6 +20,7 @@ namespace FireAlt.Core.Rendering
         {
             if (sprite != null)
             {
+                CheckSprite(sprite);
                 uvAtlas = RendererUtility.GetUvAtlas(sprite);
                 normalizedPivot = RendererUtility.GetNormalizedPivot(sprite);
                 rectScale = RendererUtility.GetRectScale(sprite, uvAtlas);
@@ -29,7 +32,7 @@ namespace FireAlt.Core.Rendering
                 rectScale = new float2(1f, 1f);
             }
         }
-
+        
         public bool Equals(SpriteProperties other)
         {
             return normalizedPivot.Equals(other.normalizedPivot) && rectScale.Equals(other.rectScale) && uvAtlas.Equals(other.uvAtlas);
@@ -38,6 +41,17 @@ namespace FireAlt.Core.Rendering
         public override int GetHashCode()
         {
             return HashCode.Combine(normalizedPivot, rectScale, uvAtlas);
+        }
+        
+        [AssertionMethod]
+        [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
+        [Conditional("UNITY_DOTS_DEBUG")]
+        public static void CheckSprite(Sprite sprite)
+        {
+            if (sprite == null || (sprite.packed && (sprite.packingMode != SpritePackingMode.Rectangle || sprite.packingRotation != SpritePackingRotation.None)))
+            {
+                throw new ArgumentException($"Sprite {sprite.name} must use rectangular packing with rotation disabled.");
+            }
         }
     }
 }
