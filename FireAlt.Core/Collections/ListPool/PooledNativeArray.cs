@@ -58,7 +58,7 @@ namespace FireAlt.Core.Collections
             _array = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(_list.Value.Ptr, _list.Value.Length, Allocator.None);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             _safety = CollectionHelper.CreateSafetyHandle(ListPool.Pool.Data.Allocator);
-            CollectionHelper.SetStaticSafetyId<NativeArray<T>>(ref _safety, ref global::Unity.Collections.NativeArrayExtensions.NativeArrayStaticId<T>.s_staticSafetyId.Data);
+            CollectionHelper.SetStaticSafetyId<NativeArray<T>>(ref _safety, ref NativeArrayExtensions.NativeArrayStaticId<T>.s_staticSafetyId.Data);
             NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref _array, _safety);
 #endif
             return this;
