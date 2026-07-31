@@ -80,13 +80,11 @@ namespace FireAlt.Core.Editor
             _isVisible = visible;
             if (_isVisible)
             {
-                var restore = ReflectionUtils.GetCallMethod(toolbarView, "RestoreToolbar");
-                restore.Invoke(toolbarView, null);
+                toolbarView.RestoreToolbar();
             }
             else
             {
-                var hide = ReflectionUtils.GetCallMethod(toolbarView, "HideToolbar");
-                hide.Invoke(toolbarView, null);
+                toolbarView.HideToolbar();
             }
         }
         
