@@ -10,9 +10,10 @@ namespace FireAlt.Core.Utility
     [SuppressMessage("ReSharper", "IdentifierTypo", Justification = "lower case causes issues")]
     public static class mathex
     {
+        public const float EPSILON = 1e-4f;
+        
         public static bool ApproximatelyEqual(float a, float b)
         {
-            const float EPSILON = 1e-4f;
             return abs(a - b) < EPSILON;
         }
         
