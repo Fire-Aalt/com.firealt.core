@@ -1,4 +1,6 @@
+using System;
 using Unity.Assertions;
+using Unity.Collections;
 
 namespace FireAlt.Core.Extensions
 {
@@ -33,6 +35,14 @@ namespace FireAlt.Core.Extensions
                 }
             }
             return newArray;
+        }
+
+        public static NativeArray<T> ToNativeArray<T>(this T[] array, Allocator allocator) 
+            where T : unmanaged
+        {
+            var nativeArray = new NativeArray<T>(array.Length, allocator);
+            nativeArray.CopyFrom(array);
+            return nativeArray;
         }
     }
 }
