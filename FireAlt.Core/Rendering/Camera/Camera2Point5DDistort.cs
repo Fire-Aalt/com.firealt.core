@@ -27,7 +27,7 @@ namespace FireAlt.Core.Rendering
             DistortProjectionMatrix(_camera, true);
         }
 
-        public void DistortProjectionMatrix(Camera camera, bool resetMatrix)
+        public static void DistortProjectionMatrix(Camera camera, bool resetMatrix)
         {
             if (resetMatrix)
             {

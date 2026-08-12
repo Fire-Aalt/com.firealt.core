@@ -16,11 +16,14 @@ namespace FireAlt.Core
             foreach (var (cameraComponent, entity) in SystemAPI.Query<RefRW<CameraBridge>>().WithEntityAccess())
             {
                 var camera = cameraComponent.ValueRW.Value.Value;
-                if (camera == null || !camera.TryGetComponent(out Camera2Point5DDistort cameraDistort))
+                if (camera == null || !camera.TryGetComponent<Camera2Point5DDistort>(out _))
                 {
                     continue;
                 }
-                cameraDistort.DistortProjectionMatrix(camera, !EntityManager.HasComponent<CameraViewSpaceOffset>(entity));
+
+                Camera2Point5DDistort.DistortProjectionMatrix(
+                    camera,
+                    !EntityManager.HasComponent<CameraViewSpaceOffset>(entity));
             }
         }
     }
