@@ -2,7 +2,7 @@ using Unity.Entities;
 
 namespace FireAlt.Core.Editor
 {
-    public static class EditorRenderDataUtils
+    public static class InternalEditorRenderData
     {
         public static void Set(EntityManager em, Entity entity, ulong sceneCullingMask)
         {
