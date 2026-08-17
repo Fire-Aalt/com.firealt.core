@@ -4,6 +4,7 @@
     "references": [
         "FireAlt.Core",
         "Unity.Entities",
+        "Unity.Transforms",
         "Unity.PerformanceTesting",
         "Unity.Collections",
         "Unity.Burst",

@@ -33,12 +33,21 @@ namespace FireAlt.Core
                 var initEcb = new EntityCommandBuffer(Allocator.Temp);
                 
                 foreach (var (link, self) in SystemAPI.Query<RefRO<HybridEntitySync>>()
+                             .WithNone<SyncTransformToEntity>()
                              .WithEntityAccess()
                              .WithOptions(EntityQueryOptions.IncludeDisabledEntities | EntityQueryOptions.IncludePrefab))
                 {
+                    var monoBehaviour = link.ValueRO.MonoBehaviour.Value;
+                    if (monoBehaviour == null)
+                    {
+                        initEcb.RemoveComponent<HybridEntitySync>(self);
+                        continue;
+                    }
+
                     initEcb.AddComponent(self, new SyncTransformToEntity
                     {
-                        TransformId = singleton.ReusableTransformAccessArray.AddTransformHandle(link.ValueRO.MonoBehaviour.Value.transformHandle, self)
+                        TransformId = singleton.ReusableTransformAccessArray.AddTransformHandle(
+                            monoBehaviour.transformHandle, self)
                     });
                 }
                 
@@ -53,9 +62,14 @@ namespace FireAlt.Core
                          .WithEntityAccess()
                          .WithOptions(EntityQueryOptions.IncludeDisabledEntities))
             {
-                var mb = link.ValueRO.MonoBehaviour;
+                var monoBehaviour = link.ValueRO.MonoBehaviour.Value;
+                if (monoBehaviour == null)
+                {
+                    ecb.RemoveComponent<HybridEntitySync>(self);
+                    continue;
+                }
 
-                var enabled = HybridEntityUtils.IsEntityEnabled(mb);
+                var enabled = HybridEntityUtils.IsEntityEnabled(monoBehaviour);
                 if (enabled != EntityManager.IsEnabled(self))
                 {
                     ecb.SetEnabled(self, enabled);

@@ -26,10 +26,14 @@ namespace FireAlt.Core
             var singleton = SystemAPI.GetSingletonRW<SyncTransformToEntityContainer>().ValueRW;
             
             CleanupMarker.Begin();
-            var cleanupQuery = SystemAPI.QueryBuilder().WithAll<SyncTransformToEntity>().WithAbsent<HybridEntitySync>().Build();
+            var cleanupQuery = SystemAPI.QueryBuilder().WithAll<SyncTransformToEntity>()
+                .WithAbsent<HybridEntitySync>()
+                .WithOptions(EntityQueryOptions.IncludeDisabledEntities | EntityQueryOptions.IncludePrefab)
+                .Build();
             if (!cleanupQuery.IsEmpty)
             {
                 foreach (var link in SystemAPI.Query<RefRO<SyncTransformToEntity>>()
+                             .WithNone<HybridEntitySync>()
                              .WithOptions(EntityQueryOptions.IncludeDisabledEntities | EntityQueryOptions.IncludePrefab))
                 {
                     singleton.ReusableTransformAccessArray.ReleaseTransform(link.ValueRO.TransformId);
@@ -45,6 +49,7 @@ namespace FireAlt.Core
                 LocalToWorld = SystemAPI.GetComponentLookup<LocalToWorld>(),
                 LocalTransform = SystemAPI.GetComponentLookup<LocalTransform>(),
                 PostTransformMatrix = SystemAPI.GetComponentLookup<PostTransformMatrix>(),
+                Parent = SystemAPI.GetComponentLookup<Parent>(true),
             }.ScheduleReadOnly(singleton.ReusableTransformAccessArray.Array, 64, state.Dependency);
             SyncMarker.End();
         }
@@ -61,6 +66,9 @@ namespace FireAlt.Core
             public ComponentLookup<LocalTransform> LocalTransform;
             [NativeDisableParallelForRestriction]
             public ComponentLookup<PostTransformMatrix> PostTransformMatrix;
+
+            [ReadOnly]
+            public ComponentLookup<Parent> Parent;
             
             public void Execute(int index, [ReadOnly] TransformAccess transform)
             {
@@ -76,8 +84,9 @@ namespace FireAlt.Core
                 
                 if (hasLocalTransform)
                 {
-                    localTransformRW.ValueRW.Position = transform.position;
-                    localTransformRW.ValueRW.Rotation = transform.rotation;
+                    var hasParent = Parent.HasComponent(entity);
+                    localTransformRW.ValueRW.Position = hasParent ? transform.localPosition : transform.position;
+                    localTransformRW.ValueRW.Rotation = hasParent ? transform.localRotation : transform.rotation;
                 
                     localTransformRW.ValueRW.Scale = HybridEntityUtils.IsNonUniformScale(transform) 
                         ? 1f 
