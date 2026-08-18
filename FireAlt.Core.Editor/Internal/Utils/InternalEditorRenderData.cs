@@ -11,7 +11,7 @@ namespace FireAlt.Core.Editor
                 : 0;
         }
 
-        public static void Set(EntityManager em, Entity entity, ulong sceneCullingMask)
+        public static void SetSceneCullingMask(EntityManager em, Entity entity, ulong sceneCullingMask)
         {
             if (!em.HasComponent<EditorRenderData>(entity))
             {

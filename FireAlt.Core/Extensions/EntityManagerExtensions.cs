@@ -8,16 +8,48 @@ namespace FireAlt.Core
     {        
         private const EntityQueryOptions QUERY_OPTIONS = EntityQueryOptions.IncludeSystems;
         
+        public static bool TryGetUnmanagedSingleton<T>(this EntityManager em, out T singleton, bool completeDependency = true)
+            where T : unmanaged, IComponentData
+        {
+            using var query = new EntityQueryBuilder(Allocator.Temp).WithAll<T>().WithOptions(QUERY_OPTIONS).Build(em);
+            
+            if (completeDependency || query.HasFilter())
+            {
+                query.CompleteDependency();
+            }
+
+            if (query.IsEmpty)
+            {
+                singleton = default;
+                return false;
+            }
+
+            singleton = query.GetSingleton<T>();
+            return true;
+        }
+        
         public static T GetUnmanagedSingleton<T>(this EntityManager em, bool completeDependency = true)
             where T : unmanaged, IComponentData
         {
             using var query = new EntityQueryBuilder(Allocator.Temp).WithAll<T>().WithOptions(QUERY_OPTIONS).Build(em);
-            if (completeDependency)
+            if (completeDependency || query.HasFilter())
             {
                 query.CompleteDependency();
             }
 
             return query.GetSingleton<T>();
+        }
+        
+        public static bool TryGetBuffer<T>(this EntityManager em, Entity entity, out DynamicBuffer<T> buffer)
+            where T : unmanaged, IBufferElementData
+        {
+            if (!em.HasBuffer<T>(entity))
+            {
+                buffer = default;
+                return false;
+            }
+            buffer = em.GetBuffer<T>(entity);
+            return true;
         }
         
         // From https://forum.unity.com/threads/really-hoped-for-refrw-refro-getcomponentrw-ro-entity.1369275/
