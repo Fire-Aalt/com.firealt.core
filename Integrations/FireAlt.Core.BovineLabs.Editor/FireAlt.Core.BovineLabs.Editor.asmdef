@@ -4,6 +4,7 @@
     "references": [
         "FireAlt.Core",
         "FireAlt.Core.Editor",
+        "BovineLabs.Bridge.Authoring",
         "BovineLabs.Core.Extensions",
         "BovineLabs.Core",
         "BovineLabs.Anchor",
