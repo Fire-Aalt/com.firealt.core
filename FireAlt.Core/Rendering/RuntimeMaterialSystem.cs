@@ -55,7 +55,12 @@ namespace FireAlt.Core.Rendering
         // but due to a bug in live subscene baking, this method has to be called each frame on each entity in the Edit mode
         private BatchMaterial GetBatchMaterial(MaterialLookup lookup, EntitiesGraphicsSystem entitiesGraphicsSystem)
         {
-            var srcMaterialVersion = UnityEditor.EditorUtility.GetDirtyCount(lookup.SrcMaterial.Value);
+            var srcMaterialVersion =
+#if UNITY_EDITOR
+                UnityEditor.EditorUtility.GetDirtyCount(lookup.SrcMaterial.Value);
+#else
+                0
+#endif
             
             if (!_materials.TryGetValue(lookup, out var batchMaterial))
             {
