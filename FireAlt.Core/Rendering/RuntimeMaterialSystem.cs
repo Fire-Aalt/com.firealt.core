@@ -73,8 +73,7 @@ namespace FireAlt.Core.Rendering
                 batchMaterial = CreateAndRegister(lookup, srcMaterialVersion, entitiesGraphicsSystem);
                 _materials[lookup] = batchMaterial;
             }
-#endif
-
+            
             if (srcMaterialVersion != batchMaterial.SrcMaterialVersion)
             {
                 entitiesGraphicsSystem.UnregisterMaterial(batchMaterial.MaterialID);
@@ -83,7 +82,7 @@ namespace FireAlt.Core.Rendering
                 batchMaterial = CreateAndRegister(lookup, srcMaterialVersion, entitiesGraphicsSystem);
                 _materials[lookup] = batchMaterial;
             }
-
+#endif
             return batchMaterial;
         }
 
