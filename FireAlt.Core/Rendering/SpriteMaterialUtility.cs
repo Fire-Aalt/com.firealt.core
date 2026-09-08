@@ -12,8 +12,8 @@ namespace FireAlt.Core.Rendering
                 ? Clone(lookup.SrcMaterial, lookup.Sprite, lookup.Texture) 
                 : Clone(lookup.SrcMaterial, lookup.Texture);
         }
-        
-        public static Material Clone(Material srcMaterial, Sprite sprite, Texture texture)
+
+        private static Material Clone(Material srcMaterial, Sprite sprite, Texture texture)
         {
             var mat = Clone(srcMaterial, texture);
             SetSecondaryTextures(sprite, mat);
@@ -21,7 +21,16 @@ namespace FireAlt.Core.Rendering
             return mat;
         }
 
-        public static void SetSecondaryTextures(Sprite sprite, Material mat)
+        private static Material Clone(Material srcMaterial, Texture texture)
+        {
+            var mat = new Material(srcMaterial)
+            {
+                mainTexture = texture
+            };
+            return mat;
+        }
+        
+        private static void SetSecondaryTextures(Sprite sprite, Material mat)
         {
             var count = sprite.GetSecondaryTextures(Buffer);
             for (int i = 0; i < count; i++)
@@ -33,15 +42,6 @@ namespace FireAlt.Core.Rendering
                     mat.SetTexture(secondaryTexture.name, secondaryTexture.texture);
                 }
             }
-        }
-
-        public static Material Clone(Material srcMaterial, Texture texture)
-        {
-            var mat = new Material(srcMaterial)
-            {
-                mainTexture = texture
-            };
-            return mat;
         }
     }
 }
