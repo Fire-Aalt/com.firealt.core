@@ -55,8 +55,8 @@ namespace FireAlt.Core.Rendering
                     var batchMaterial = arrays.Values[i];
 
                     var srcMaterialVersion = UnityEditor.EditorUtility.GetDirtyCount(lookup.SrcMaterial.Value);
-                    
-                    if (srcMaterialVersion != batchMaterial.SrcMaterialVersion)
+
+                    if (srcMaterialVersion != batchMaterial.SrcMaterialVersion || batchMaterial.Material.Value == null)
                     {
                         entitiesGraphicsSystem.UnregisterMaterial(batchMaterial.MaterialID);
                         CoreUtils.Destroy(batchMaterial.Material);

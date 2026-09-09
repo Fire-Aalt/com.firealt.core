@@ -5,7 +5,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Rendering;
-using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace FireAlt.Core.Rendering
@@ -95,11 +94,7 @@ namespace FireAlt.Core.Rendering
         private void RegisterLookup(MaterialLookup lookup, NativeHashMap<MaterialLookup, BatchMaterial> materials,
             EntitiesGraphicsSystem entitiesGraphicsSystem)
         {
-            if (!materials.TryGetValue(lookup, out var batchMaterial)
-#if UNITY_EDITOR
-                || batchMaterial.Material == null
-#endif
-                )
+            if (!materials.TryGetValue(lookup, out var batchMaterial))
             {
                 batchMaterial = CreateAndRegister(lookup, entitiesGraphicsSystem, 0);
                 materials[lookup] = batchMaterial;
