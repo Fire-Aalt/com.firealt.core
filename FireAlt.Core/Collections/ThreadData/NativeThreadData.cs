@@ -1,3 +1,4 @@
+using FireAlt.Core.Internal;
 using System;
 using System.Collections;
 using System.Runtime.CompilerServices;
@@ -50,9 +51,9 @@ namespace FireAlt.Core.Collections
             where TAllocator : unmanaged, AllocatorManager.IAllocator
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            CollectionHelper.CheckAllocator(allocator.Handle);
+            CollectionChecks.CheckAllocator(allocator.Handle);
             m_Safety = CollectionHelper.CreateSafetyHandle(allocator.Handle);
-            CollectionHelper.InitNativeContainer<T>(m_Safety);
+            CollectionChecks.InitNativeContainer<T>(m_Safety);
             CollectionHelper.SetStaticSafetyId<NativeThreadData<T>>(ref m_Safety, ref s_staticSafetyId.Data);
             m_SafetyIndexHint = allocator.Handle.AddSafetyHandle(m_Safety);
             AtomicSafetyHandle.SetBumpSecondaryVersionOnScheduleWrite(m_Safety, true);
@@ -143,7 +144,7 @@ namespace FireAlt.Core.Collections
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 m_Safety = data.m_Safety;
-                CollectionHelper.SetStaticSafetyId(ref m_Safety, ref staticSafetyId.Data, "NZCore.PerThreadData.ThreadWriter");
+                CollectionAccess.SetStaticSafetyId(ref m_Safety, ref staticSafetyId.Data, "NZCore.PerThreadData.ThreadWriter");
 #endif
             }
 
@@ -188,7 +189,7 @@ namespace FireAlt.Core.Collections
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 m_Safety = data.m_Safety;
-                CollectionHelper.SetStaticSafetyId(ref m_Safety, ref staticSafetyId.Data, "NZCore.PerThreadData.ThreadReader");
+                CollectionAccess.SetStaticSafetyId(ref m_Safety, ref staticSafetyId.Data, "NZCore.PerThreadData.ThreadReader");
 #endif
             }
 

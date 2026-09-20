@@ -1,4 +1,4 @@
-<ui:UXML xmlns:uiex="BovineLabs.Core.Editor.SearchWindow"
+<ui:UXML xmlns:uiex="FireAlt.Core.Editor.UI"
          xmlns:ui="UnityEngine.UIElements"
 >
     <!--ui:Label text="Add Element" class="SearchView-Label__Title" /-->

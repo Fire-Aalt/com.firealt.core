@@ -1,4 +1,5 @@
-﻿using System.Collections;
+using FireAlt.Core.Internal;
+using System.Collections;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Unity.Burst;
@@ -53,7 +54,7 @@ namespace FireAlt.Core.Collections
             }
 
             int allocationSize = sizeof(UnsafeParallelListHeader);
-            byte* buffer = (byte*)Memory.Unmanaged.Allocate(allocationSize, UnsafeUtility.AlignOf<UnsafeParallelListHeader>(), allocatorHandle.ToAllocator);
+            byte* buffer = (byte*)CollectionMemory.Allocate(allocationSize, UnsafeUtility.AlignOf<UnsafeParallelListHeader>(), allocatorHandle.ToAllocator);
             UnsafeUtility.MemClear(buffer, allocationSize);
 
             header = (UnsafeParallelListHeader*)buffer;
@@ -67,7 +68,7 @@ namespace FireAlt.Core.Collections
         internal static UnsafeThreadList<T>* Create<TAllocator>(int initialCapacity, ref TAllocator allocator, NativeArrayOptions options = NativeArrayOptions.UninitializedMemory)
             where TAllocator : unmanaged, AllocatorManager.IAllocator
         {
-            UnsafeThreadList<T>* unsafeParallelList = allocator.Allocate(default(UnsafeThreadList<T>), 1);
+            UnsafeThreadList<T>* unsafeParallelList = CollectionMemory.Allocate<UnsafeThreadList<T>, TAllocator>(ref allocator);
             *unsafeParallelList = new UnsafeThreadList<T>(initialCapacity, allocator.Handle);
 
             return unsafeParallelList;
@@ -101,7 +102,7 @@ namespace FireAlt.Core.Collections
 
                 header->ChunkCount = chunkCount;
 
-                ranges = (UnsafeParallelListRange*)Memory.Unmanaged.Allocate(allocationSize, UnsafeUtility.AlignOf<UnsafeParallelListRange>(), allocator);
+                ranges = (UnsafeParallelListRange*)CollectionMemory.Allocate(allocationSize, UnsafeUtility.AlignOf<UnsafeParallelListRange>(), allocator);
 
                 UnsafeUtility.MemClear(ranges, allocationSize);
             }
@@ -116,7 +117,7 @@ namespace FireAlt.Core.Collections
         {
             if (ranges != null)
             {
-                Memory.Unmanaged.Free(ranges, allocator);
+                CollectionMemory.Free(ranges, allocator);
                 ranges = null;
             }
         }
@@ -237,7 +238,7 @@ namespace FireAlt.Core.Collections
             perThreadLists = null;
 
             DeallocateRanges();
-            Memory.Unmanaged.Free(header, allocator);
+            CollectionMemory.Free(header, allocator);
             header = null;
 
             allocator = Allocator.None;

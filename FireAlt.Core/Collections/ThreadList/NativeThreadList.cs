@@ -1,4 +1,5 @@
-﻿// <copyright project="NZCore" file="ParallelList.cs" version="1.0.0">
+using FireAlt.Core.Internal;
+// <copyright project="NZCore" file="ParallelList.cs" version="1.0.0">
 // Copyright © 2024 Thomas Enzenebner. All rights reserved.
 // </copyright>
 
@@ -62,12 +63,12 @@ namespace FireAlt.Core.Collections
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             var totalSize = sizeof(T) * (long)initialCapacity;
-            CollectionHelper.CheckAllocator(allocator.Handle);
+            CollectionChecks.CheckAllocator(allocator.Handle);
             CheckInitialCapacity(initialCapacity);
             CheckTotalSize(initialCapacity, totalSize);
 
             m_Safety = CollectionHelper.CreateSafetyHandle(allocator.Handle);
-            CollectionHelper.InitNativeContainer<T>(m_Safety);
+            CollectionChecks.InitNativeContainer<T>(m_Safety);
 
             CollectionHelper.SetStaticSafetyId<NativeThreadList<T>>(ref m_Safety, ref s_staticSafetyId.Data);
 
@@ -202,7 +203,7 @@ namespace FireAlt.Core.Collections
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 m_Safety = nativeThreadList.m_Safety;
-                CollectionHelper.SetStaticSafetyId(ref m_Safety, ref staticSafetyId.Data, "NZCore.ChunkWriter");
+                CollectionAccess.SetStaticSafetyId(ref m_Safety, ref staticSafetyId.Data, "NZCore.ChunkWriter");
 
                 if (nativeThreadList._unsafeParallelList->CheckRangesForNull())
                     Debug.LogError($"Ranges have not been allocated. SetChunkCount(int chunkCount) before writing something."); // {Environment.StackTrace}");
@@ -263,7 +264,7 @@ namespace FireAlt.Core.Collections
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 m_Safety = stream.m_Safety;
-                CollectionHelper.SetStaticSafetyId(ref m_Safety, ref staticSafetyId.Data, "NZCore.ChunkReader");
+                CollectionAccess.SetStaticSafetyId(ref m_Safety, ref staticSafetyId.Data, "NZCore.ChunkReader");
 #endif
             }
 
@@ -316,7 +317,7 @@ namespace FireAlt.Core.Collections
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 m_Safety = nativeThreadList.m_Safety;
-                CollectionHelper.SetStaticSafetyId(ref m_Safety, ref staticSafetyId.Data, "NZCore.ThreadWriter");
+                CollectionAccess.SetStaticSafetyId(ref m_Safety, ref staticSafetyId.Data, "NZCore.ThreadWriter");
 #endif
             }
 
@@ -380,7 +381,7 @@ namespace FireAlt.Core.Collections
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 m_Safety = stream.m_Safety;
-                CollectionHelper.SetStaticSafetyId(ref m_Safety, ref staticSafetyId.Data, "NZCore.ThreadReader");
+                CollectionAccess.SetStaticSafetyId(ref m_Safety, ref staticSafetyId.Data, "NZCore.ThreadReader");
 #endif
             }
 
@@ -416,7 +417,7 @@ namespace FireAlt.Core.Collections
             return new UnsafeThreadList<T>.UnsafeParallelListToArraySingleThreaded
             {
                 ThreadList = *_unsafeParallelList,
-                List = nativeList.m_ListData
+                List = nativeList.GetListData()
             }.Schedule(dependency);
         }
         

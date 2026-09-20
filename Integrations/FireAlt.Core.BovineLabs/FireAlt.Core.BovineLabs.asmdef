@@ -3,7 +3,7 @@
     "rootNamespace": "FireAlt.Core.BovineLabs",
     "references": [
         "FireAlt.Core",
-        "BovineLabs.Core.Extensions",
+        "BovineLabs.Nerve",
         "BovineLabs.Core",
         "BovineLabs.Quill",
         "BovineLabs.Bridge",

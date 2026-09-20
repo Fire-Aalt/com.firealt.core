@@ -1,3 +1,4 @@
+using FireAlt.Core.Internal;
 using System;
 using System.Collections.Generic;
 using Unity.Collections.LowLevel.Unsafe;
@@ -23,26 +24,26 @@ namespace FireAlt.Core.Extensions
             where TKey : unmanaged, IEquatable<TKey>
             where TValue : unmanaged
         {
-            var idx = hashMap.m_Data.Find(key);
+            var idx = hashMap.GetData().Find(key);
 
             if (idx == -1)
             {
-                idx = hashMap.m_Data.AddNoFind(key);
-                UnsafeUtility.WriteArrayElement(hashMap.m_Data.Ptr, idx, defaultValue);
+                idx = hashMap.GetData().AddNoFind(key);
+                UnsafeUtility.WriteArrayElement(hashMap.GetData().Ptr, idx, defaultValue);
             }
 
-            return ref UnsafeUtility.ArrayElementAsRef<TValue>(hashMap.m_Data.Ptr, idx);
+            return ref UnsafeUtility.ArrayElementAsRef<TValue>(hashMap.GetData().Ptr, idx);
         }
         
         public static ref TValue GetValueAsRef<TKey, TValue>(ref this UnsafeHashMap<TKey, TValue> hashMap, TKey key)
             where TKey : unmanaged, IEquatable<TKey>
             where TValue : unmanaged
         {
-            var idx = hashMap.m_Data.Find(key);
+            var idx = hashMap.GetData().Find(key);
 
             if (idx != -1)
             {
-                return ref UnsafeUtility.ArrayElementAsRef<TValue>(hashMap.m_Data.Ptr, idx);
+                return ref UnsafeUtility.ArrayElementAsRef<TValue>(hashMap.GetData().Ptr, idx);
             }
 
             throw new KeyNotFoundException($"Key '{key}' not found in the NativeHashMap.");

@@ -1,3 +1,4 @@
+using FireAlt.Core.Internal;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -162,9 +163,9 @@ namespace FireAlt.Core.Collections
         private void InitializeSafety(AllocatorManager.AllocatorHandle allocator)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            CollectionHelper.CheckAllocator(allocator);
+            CollectionChecks.CheckAllocator(allocator);
             m_Safety = CollectionHelper.CreateSafetyHandle(allocator);
-            CollectionHelper.InitNativeContainer<T>(m_Safety);
+            CollectionChecks.InitNativeContainer<T>(m_Safety);
             CollectionHelper.SetStaticSafetyId<NativePriorityQueue<T>>(ref m_Safety, ref s_staticSafetyId.Data);
             AtomicSafetyHandle.SetBumpSecondaryVersionOnScheduleWrite(m_Safety, true);
 #endif
@@ -390,9 +391,9 @@ namespace FireAlt.Core.Collections
         private void InitializeSafety(AllocatorManager.AllocatorHandle allocator)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            CollectionHelper.CheckAllocator(allocator);
+            CollectionChecks.CheckAllocator(allocator);
             m_Safety = CollectionHelper.CreateSafetyHandle(allocator);
-            CollectionHelper.InitNativeContainer<T>(m_Safety);
+            CollectionChecks.InitNativeContainer<T>(m_Safety);
             CollectionHelper.SetStaticSafetyId<NativePriorityQueue<T, TComparer>>(ref m_Safety, ref s_staticSafetyId.Data);
             AtomicSafetyHandle.SetBumpSecondaryVersionOnScheduleWrite(m_Safety, true);
 #endif

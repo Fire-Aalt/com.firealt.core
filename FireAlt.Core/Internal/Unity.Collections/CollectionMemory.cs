@@ -1,0 +1,28 @@
+namespace FireAlt.Core.Internal
+{
+    using Unity.Collections;
+
+    internal static unsafe class CollectionMemory
+    {
+        public static T* Allocate<T, TAllocator>(ref TAllocator allocator) where T : unmanaged
+            where TAllocator : unmanaged, AllocatorManager.IAllocator
+        {
+            return allocator.Allocate(default(T), 1);
+        }
+
+        public static void* Allocate(long size, int alignment, AllocatorManager.AllocatorHandle allocator)
+        {
+            return Unity.Collections.Memory.Unmanaged.Allocate(size, alignment, allocator);
+        }
+
+        public static T* Allocate<T>(AllocatorManager.AllocatorHandle allocator) where T : unmanaged
+        {
+            return Unity.Collections.Memory.Unmanaged.Allocate<T>(allocator);
+        }
+
+        public static void Free(void* pointer, AllocatorManager.AllocatorHandle allocator)
+        {
+            Unity.Collections.Memory.Unmanaged.Free(pointer, allocator);
+        }
+    }
+}

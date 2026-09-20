@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using Unity.Collections;
+using FireAlt.Core.Internal;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Mathematics;
+using Unity.Collections;
 
 namespace FireAlt.Core.Extensions
 {
@@ -17,7 +18,7 @@ namespace FireAlt.Core.Extensions
             where TValue : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
         {
-            ref var data = ref hashMap.m_Data;
+            var data = hashMap.GetData();
             int idx = data->Find(key);
 
             if (-1 != idx)
@@ -34,7 +35,7 @@ namespace FireAlt.Core.Extensions
             where TValue : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
         {
-            ref var data = ref hashMap.m_Data;
+            var data = hashMap.GetData();
             int idx = data->Find(key);
 
             if (-1 != idx)
@@ -106,7 +107,7 @@ namespace FireAlt.Core.Extensions
             var oldBuckets = hashMapHelper.Buckets;
             var oldBucketCapacity = hashMapHelper.BucketCapacity;
 
-            hashMapHelper.Ptr = (byte*)Memory.Unmanaged.Allocate(totalSize, JobsUtility.CacheLineSize, hashMapHelper.Allocator);
+            hashMapHelper.Ptr = (byte*)CollectionMemory.Allocate(totalSize, JobsUtility.CacheLineSize, hashMapHelper.Allocator);
             hashMapHelper.Keys = (TKey*)(hashMapHelper.Ptr + keyOffset);
             hashMapHelper.Next = (int*)(hashMapHelper.Ptr + nextOffset);
             hashMapHelper.Buckets = (int*)(hashMapHelper.Ptr + bucketOffset);
@@ -125,7 +126,7 @@ namespace FireAlt.Core.Extensions
                 }
             }
 
-            Memory.Unmanaged.Free(oldPtr, hashMapHelper.Allocator);
+            CollectionMemory.Free(oldPtr, hashMapHelper.Allocator);
         }
         
         internal static int AddNoFindNoResize<TKey>(this ref HashMapHelper<TKey> hashMapHelper, in TKey key)

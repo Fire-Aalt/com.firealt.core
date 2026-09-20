@@ -58,7 +58,7 @@ namespace FireAlt.Core.Editor.UI
                 return;
             }
 
-            var searchField = this.searchView.Q<SearchView>();
+            var searchField = this.searchView.Q<SearchField>();
             var input = searchField.Q("unity-text-input");
             input.Focus();
         }

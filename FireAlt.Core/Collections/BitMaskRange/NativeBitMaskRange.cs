@@ -1,3 +1,4 @@
+using FireAlt.Core.Internal;
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -155,9 +156,9 @@ namespace FireAlt.Core.Collections
         private void InitializeSafety(AllocatorManager.AllocatorHandle allocator)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            CollectionHelper.CheckAllocator(allocator);
+            CollectionChecks.CheckAllocator(allocator);
             m_Safety = CollectionHelper.CreateSafetyHandle(allocator);
-            CollectionHelper.InitNativeContainer<ulong>(m_Safety);
+            CollectionChecks.InitNativeContainer<ulong>(m_Safety);
             CollectionHelper.SetStaticSafetyId<NativeBitMaskRange>(ref m_Safety, ref s_staticSafetyId.Data);
             AtomicSafetyHandle.SetBumpSecondaryVersionOnScheduleWrite(m_Safety, true);
 #endif

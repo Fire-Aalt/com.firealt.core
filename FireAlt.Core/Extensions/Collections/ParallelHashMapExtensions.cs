@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using FireAlt.Core.Internal;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
@@ -12,7 +13,7 @@ namespace FireAlt.Core.Extensions
             where TKey : unmanaged, IEquatable<TKey>
             where TValue : unmanaged
         {
-            return ref map.m_HashMapData.m_Buffer->GetValueByRef<TKey, TValue>(key);
+            return ref map.GetHashMapStorage().GetBuffer()->GetValueByRef<TKey, TValue>(key);
         }
         
         internal static ref TValue GetValueByRef<TKey, TValue>(this ref UnsafeParallelHashMapData data, TKey key)
@@ -51,10 +52,10 @@ namespace FireAlt.Core.Extensions
             where TKey : unmanaged, IEquatable<TKey>
             where TValue : unmanaged
         {
-            UnsafeParallelMultiHashMap<TKey, TValue>.ParallelWriter writer;
+            var writer = map.AsParallelWriter();
 
-            writer.m_ThreadIndex = threadIndex;
-            writer.m_Buffer = map.m_Buffer;
+            writer.GetThreadIndex() = threadIndex;
+
 
             return writer;
         }
@@ -98,7 +99,7 @@ namespace FireAlt.Core.Extensions
             where TKey : unmanaged, IEquatable<TKey>
             where TValue : unmanaged
         {
-            map.m_HashMapData.ConvertToList(ref keyList, ref valueList, offset);
+            map.GetHashMapStorage().ConvertToList(ref keyList, ref valueList, offset);
         }
         
         private static unsafe void ConvertToList<TKey, TValue>(this UnsafeParallelHashMap<TKey, TValue> data, 
@@ -113,7 +114,7 @@ namespace FireAlt.Core.Extensions
                 keyList.Capacity = dataCount;
                 valueList.Capacity = dataCount;
             }
-            GetKeyValueArrays(data.m_Buffer, dataCount, keyList.AsArray(), valueList.AsArray(), offset);
+            GetKeyValueArrays(data.GetBuffer(), dataCount, keyList.AsArray(), valueList.AsArray(), offset);
         }
         
         public static void ToNativeArrays<TKey, TValue>(this NativeParallelHashMap<TKey, TValue> map,
@@ -121,7 +122,7 @@ namespace FireAlt.Core.Extensions
             where TKey : unmanaged, IEquatable<TKey>
             where TValue : unmanaged
         {
-            map.m_HashMapData.ConvertToArray(ref keyArray, ref valueArray, offset);
+            map.GetHashMapStorage().ConvertToArray(ref keyArray, ref valueArray, offset);
         }
         
         private static unsafe void ConvertToArray<TKey, TValue>(this UnsafeParallelHashMap<TKey, TValue> data, 
@@ -129,7 +130,7 @@ namespace FireAlt.Core.Extensions
             where TKey : unmanaged, IEquatable<TKey>
             where TValue : unmanaged
         {
-            GetKeyValueArrays(data.m_Buffer, data.Count(), keyList, valueList, offset);
+            GetKeyValueArrays(data.GetBuffer(), data.Count(), keyList, valueList, offset);
         }
         
         [GenerateTestsForBurstCompatibility(GenericTypeArguments = new [] { typeof(int), typeof(int) })]

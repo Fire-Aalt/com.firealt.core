@@ -1,5 +1,6 @@
 #if ADDRESSABLES
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
@@ -72,7 +73,7 @@ namespace FireAlt.Core.Editor
                 return null;
 
             var entry = source.GetAddressableAssetEntry();
-            return entry?.labels;
+            return entry?.labels.ToHashSet();
         }
 
         public static string GetAddressableAssetPath(this Object source)

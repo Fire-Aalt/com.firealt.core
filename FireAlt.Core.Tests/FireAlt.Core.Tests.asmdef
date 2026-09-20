@@ -3,6 +3,7 @@
     "rootNamespace": "FireAlt.Core.Tests",
     "references": [
         "FireAlt.Core",
+        "FireAlt.Core.Editor",
         "Unity.Entities",
         "Unity.Transforms",
         "Unity.PerformanceTesting",

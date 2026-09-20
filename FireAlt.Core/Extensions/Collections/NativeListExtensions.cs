@@ -1,3 +1,4 @@
+using FireAlt.Core.Internal;
 using Unity.Collections;
 using Unity.Mathematics;
 
@@ -46,7 +47,7 @@ namespace FireAlt.Core.Extensions
         
         public static unsafe void SetLengthNoClear<T>(this NativeList<T> list, int length) where T : unmanaged
         {
-            var data = list.m_ListData;
+            var data = list.GetListData();
             data->Length = length;
         }
         

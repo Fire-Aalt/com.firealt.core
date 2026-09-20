@@ -22,7 +22,7 @@ namespace FireAlt.Core.Quill
         static DrawManager()
         {
             Selection.selectionChanged += SelectionChanged;
-            DrawEditor.Update += Update;
+            EditorApplication.update += Update;
         }
         
         public static void Register(IDraw drawer)
@@ -58,8 +58,17 @@ namespace FireAlt.Core.Quill
             ListPool<IDraw>.Release(buffer);
         }
 
+        private struct FrameMarker
+        {
+        }
+
         private static void Update()
         {
+            if (!FrameUtility.IsNewFrame<FrameMarker>())
+            {
+                return;
+            }
+
             // lastActiveSceneView can be null if no SceneView exists
             var lastActiveSceneView = SceneView.lastActiveSceneView;
             if (lastActiveSceneView == null || !lastActiveSceneView.drawGizmos)

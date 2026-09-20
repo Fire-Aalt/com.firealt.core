@@ -1,4 +1,5 @@
 using System;
+using FireAlt.Core.Internal;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
@@ -8,7 +9,7 @@ namespace FireAlt.Core.Extensions
     {
         public static unsafe void ToNativeList<T>(this NativeHashSet<T> set, ref NativeList<T> list) where T : unmanaged, IEquatable<T>
         {
-            var data = set.m_Data;
+            var data = set.GetData();
             data->ConvertToList(ref list);
         }
         

@@ -1,7 +1,6 @@
-#if UNITY_EDITOR
+#if UNITY_EDITOR && BL_ANCHOR && UNITY_INCLUDE_INSTRUMENTATION
 using BovineLabs.Anchor;
 using BovineLabs.Anchor.Debug.Toolbar;
-using BovineLabs.Anchor.MVVM;
 using BovineLabs.Core.ConfigVars;
 using FireAlt.Core.Utility;
 using Unity.Burst;
@@ -36,11 +35,12 @@ namespace FireAlt.Core.Editor
             if (change == PlayModeStateChange.EnteredPlayMode)
             {
                 if (AnchorApp.Current == null) return;
-                var toolbarView = AnchorApp.Current.Services.GetRequiredService<ToolbarView>();
+                var toolbarView = AnchorApp.Current?.RootVisualElement?.Q<ToolbarView>();
+                if (toolbarView == null) return;
 
                 // Remove 'close' button
                 var button = FindButtonWithTrailingIcon(toolbarView.panel.visualTree, "x");
-                button.RemoveFromHierarchy();
+                button?.RemoveFromHierarchy();
 
                 SetToolbarVisibility(toolbarView, ShowOnStart.Data);
                 ApplyStyle();
@@ -70,7 +70,8 @@ namespace FireAlt.Core.Editor
                 return;
             }
             
-            var toolbarView = AnchorApp.Current.Services.GetRequiredService<ToolbarView>();
+            var toolbarView = AnchorApp.Current?.RootVisualElement?.Q<ToolbarView>();
+            if (toolbarView == null) return;
             SetToolbarVisibility(toolbarView, !_isVisible);
             ApplyStyle();
         }

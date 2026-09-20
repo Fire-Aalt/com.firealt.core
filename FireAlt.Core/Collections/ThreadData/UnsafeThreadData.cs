@@ -1,3 +1,4 @@
+using FireAlt.Core.Internal;
 using System.Collections;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -50,7 +51,7 @@ namespace FireAlt.Core.Collections
         internal static UnsafeThreadData<T>* Create<TAllocator>(ref TAllocator allocator, NativeArrayOptions options = NativeArrayOptions.UninitializedMemory)
             where TAllocator : unmanaged, AllocatorManager.IAllocator
         {
-            UnsafeThreadData<T>* unsafePerThreadData = allocator.Allocate(default(UnsafeThreadData<T>), 1);
+            UnsafeThreadData<T>* unsafePerThreadData = CollectionMemory.Allocate<UnsafeThreadData<T>, TAllocator>(ref allocator);
             *unsafePerThreadData = new UnsafeThreadData<T>(allocator.Handle);
 
             return unsafePerThreadData;

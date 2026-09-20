@@ -18,8 +18,7 @@ namespace FireAlt.Core.Extensions
         public static NativeArray<int> GetStartIndexArray<T>(this UnsafeThreadList<T> unsafeThreadList, ref SystemState state)
             where T : unmanaged
         {
-            NativeArray<int> lengths = new NativeArray<int>();
-            lengths.Initialize(JobsUtility.ThreadIndexCount, state.WorldUpdateAllocator, NativeArrayOptions.UninitializedMemory);
+            var lengths = CollectionHelper.CreateNativeArray<int>(JobsUtility.ThreadIndexCount, state.WorldUpdateAllocator, NativeArrayOptions.UninitializedMemory);
 
             int count = 0;
             for (int i = 0; i < JobsUtility.ThreadIndexCount; i++)

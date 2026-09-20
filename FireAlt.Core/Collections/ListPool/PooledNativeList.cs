@@ -1,3 +1,4 @@
+using FireAlt.Core.Internal;
 using System;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -46,14 +47,7 @@ namespace FireAlt.Core.Collections
         
         internal PooledNativeList<T> Create(int minCapacity)
         {
-            _list = default;
-            _list.m_ListData = ListPool.RentUnsafeList<T>(minCapacity);
-
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            _list.m_Safety = CollectionHelper.CreateSafetyHandle(ListPool.Pool.Data.Allocator);
-            CollectionHelper.SetStaticSafetyId<NativeList<T>>(ref _list.m_Safety, ref NativeList<T>.s_staticSafetyId.Data);
-            AtomicSafetyHandle.SetBumpSecondaryVersionOnScheduleWrite(_list.m_Safety, true);
-#endif
+            _list = CollectionAccess.CreateNativeList<T>(ListPool.RentUnsafeList<T>(minCapacity), ListPool.Pool.Data.Allocator);
 
             return this;
         }
@@ -81,11 +75,11 @@ namespace FireAlt.Core.Collections
             }
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            AtomicSafetyHandle.CheckDeallocateAndThrow(_list.m_Safety);
-            AtomicSafetyHandle.Release(_list.m_Safety);
+            AtomicSafetyHandle.CheckDeallocateAndThrow(_list.GetSafety());
+            AtomicSafetyHandle.Release(_list.GetSafety());
 #endif
 
-            ListPool.ReturnUnsafeList(new Ref<UnsafeList<T>>(_list.m_ListData));
+            ListPool.ReturnUnsafeList(new Ref<UnsafeList<T>>(_list.GetListData()));
             _list = default;
         }
     }
