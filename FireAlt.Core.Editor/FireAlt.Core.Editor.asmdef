@@ -9,8 +9,6 @@
     "Unity.Scenes",
     "Unity.Burst",
     "Unity.Transforms",
-    "Unity.Addressables",
-    "Unity.Addressables.Editor",
     "Unity.AppUI",
     "Unity.AppUI.MVVM",
     "FireAlt.Core"
@@ -24,12 +22,6 @@
   "precompiledReferences": [],
   "autoReferenced": true,
   "defineConstraints": [],
-  "versionDefines": [
-    {
-      "name": "com.unity.addressables",
-      "expression": "",
-      "define": "ADDRESSABLES"
-    }
-  ],
+  "versionDefines": [],
   "noEngineReferences": false
 }
