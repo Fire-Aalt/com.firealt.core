@@ -14,7 +14,6 @@
         "Unity.Physics.Custom",
         "Unity.Transforms",
         "Unity.Entities.Hybrid",
-        "Unity.Addressables",
         "Unity.Scenes"
     ],
     "includePlatforms": [],
@@ -39,11 +38,6 @@
             "name": "com.bovinelabs.bridge",
             "expression": "",
             "define": "BL_BRIDGE"
-        },
-        {
-            "name": "com.unity.addressables",
-            "expression": "",
-            "define": "ADDRESSABLES"
         }
     ],
     "noEngineReferences": false

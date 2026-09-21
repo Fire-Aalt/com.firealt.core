@@ -68,11 +68,9 @@ This is useful for per-texture runtime material instancing without rebuilding al
 - `Editor/Tools/GameViewVSyncFix.cs`: preserves Game view VSync state through play mode.
 - `Editor/MainToolbar/*`: scene-group dropdown, leak detection mode selector, Anchor toolbar visibility toggle.
 - `Editor/Utils/*`: `AssetDatabaseUtils`, `ScopedEditorPrefs`, toolbar styling helpers, serialization helpers.
-- `Editor/Extensions/AddressableExtensions.cs` + `Editor/Utils/AddressableUtils.cs`: addressables helpers (compiled only with `ADDRESSABLES` define).
 
 ## Conditional Integrations
 Several features compile conditionally:
-- `ADDRESSABLES`
 - `BL_CORE`
 - `BL_QUILL`
 - `BL_ESSENSE`
