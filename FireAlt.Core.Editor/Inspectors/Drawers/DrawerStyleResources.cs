@@ -1,17 +1,20 @@
-using UnityEditor;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace FireAlt.Core.Editor.Inspectors
 {
-    [InitializeOnLoad]
-    public static class DrawerStyleResources
+    public static partial class DrawerStyleResources
     {
-        public static readonly StyleSheet CommonStyleSheet;
-        public static readonly StyleSheet EnumToggleButtonsStyleSheet;
-        public static readonly StyleSheet InlineScriptableObjectStyleSheet;
+        [NoAutoStaticsCleanup]
+        public static StyleSheet CommonStyleSheet;
+        [NoAutoStaticsCleanup]
+        public static StyleSheet EnumToggleButtonsStyleSheet;
+        [NoAutoStaticsCleanup]
+        public static StyleSheet InlineScriptableObjectStyleSheet;
 
-        static DrawerStyleResources()
+        [OnCodeInitializing]
+        private static void LoadStyles()
         {
             CommonStyleSheet = Load<StyleSheet>("Styles/DrawerCommon.uss");
             EnumToggleButtonsStyleSheet = Load<StyleSheet>("Styles/EnumToggleButtonsDrawer.uss");
