@@ -2,18 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Unity.Scripting.LifecycleManagement;
+using UnityEngine.Assemblies;
 
 namespace FireAlt.Core.Utility
 {
+    [NoAutoStaticsCleanup]
     public static class ReflectionUtils
     {
         private static Assembly[] _allAssemblies;
-        /// <summary> Gets all currently loaded assemblies in the AppDomain. </summary>
-#if UNITY_6000_6_OR_NEWER
-        public static Assembly[] AllAssemblies => _allAssemblies ??= UnityEngine.Assemblies.CurrentAssemblies.GetLoadedAssemblies().ToArray();
-#else
-        public static Assembly[] AllAssemblies => _allAssemblies ??= AppDomain.CurrentDomain.GetAssemblies();
-#endif
+        /// <summary> Gets all currently loaded assemblies. </summary>
+        public static Assembly[] AllAssemblies => _allAssemblies ??= CurrentAssemblies.GetLoadedAssemblies().ToArray();
         /// <summary> Checks if an assembly references another assembly. </summary>
         /// <param name="assembly"> The assembly to check. </param>
         /// <param name="reference"> The reference to check if the assembly has. </param>

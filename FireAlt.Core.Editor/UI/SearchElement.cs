@@ -5,11 +5,13 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace FireAlt.Core.Editor.UI
 {
+    [NoAutoStaticsCleanup]
     public class SearchElement : BaseField<int>
     {
         private static readonly Color DARK_BASE = new(0.251f, 0.251f, 0.251f, 1f); // #404040

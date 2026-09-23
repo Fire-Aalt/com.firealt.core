@@ -2,21 +2,16 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEditor;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 
 namespace FireAlt.Core.Editor
 {
-    [InitializeOnLoad]
-    public static class EditorBakingWorld
+    [NoAutoStaticsCleanup]
+    public static partial class EditorBakingWorld
     {
         private static readonly Dictionary<World, BlobAssetStore> Stores = new();
         private static readonly List<World> StaleWorlds = new();
-
-        static EditorBakingWorld()
-        {
-            AssemblyReloadEvents.beforeAssemblyReload += Dispose;
-            EditorApplication.quitting += Dispose;
-        }
 
         public static Entity[] BakeInto(GameObject[] gameObjects, World editorWorld)
         {
@@ -68,6 +63,7 @@ namespace FireAlt.Core.Editor
             StaleWorlds.Clear();
         }
 
+        [OnCodeUnloading]
         private static void Dispose()
         {
             foreach (var store in Stores.Values)

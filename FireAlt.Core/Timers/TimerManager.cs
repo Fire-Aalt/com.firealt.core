@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Scripting.LifecycleManagement;
 
 namespace FireAlt.Core.Timers
 {
+    [NoAutoStaticsCleanup]
     public static class TimerManager
     {
         private static readonly HashSet<Timer> Timers = new();

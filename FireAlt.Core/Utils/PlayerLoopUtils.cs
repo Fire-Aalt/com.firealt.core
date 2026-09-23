@@ -2,13 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEditor;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.LowLevel;
 
 namespace FireAlt.Core.Utility
 {
-    public static class PlayerLoopUtils
+    [NoAutoStaticsCleanup]
+    public static partial class PlayerLoopUtils
     {
+        private static Action _runtimeCleanup;
+
         /// <summary>
         /// Adds an update callback that will be called on update
         /// </summary>
@@ -30,27 +34,30 @@ namespace FireAlt.Core.Utility
         /// </summary>
         public static bool AddRuntimePlayerLoopSystem<TTiming>(Type type, Action updateCallback, Action disposeCallback)
         {
-            AddPlayerLoopSystem_Internal<TTiming>(type, updateCallback, out var system);
-            
-#if UNITY_EDITOR
-            EditorApplication.playModeStateChanged -= OnPlayModeStateUpdateLoop;
-            EditorApplication.playModeStateChanged += OnPlayModeStateUpdateLoop;
-
-            void OnPlayModeStateUpdateLoop(PlayModeStateChange state)
+            if (!AddPlayerLoopSystem_Internal<TTiming>(type, updateCallback, out var system))
             {
-                if (state == PlayModeStateChange.ExitingPlayMode)
-                {
-                    var playerLoop = PlayerLoop.GetCurrentPlayerLoop();
-                    RemoveSystem<TTiming>(ref playerLoop, system);
-                    PlayerLoop.SetPlayerLoop(playerLoop);
-                    
-                    disposeCallback?.Invoke();
-                }
+                return false;
             }
-#endif
+
+            _runtimeCleanup += () =>
+            {
+                var playerLoop = PlayerLoop.GetCurrentPlayerLoop();
+                RemoveSystem<TTiming>(ref playerLoop, system);
+                PlayerLoop.SetPlayerLoop(playerLoop);
+                disposeCallback?.Invoke();
+            };
+
             return true;
         }
-        
+
+        [OnExitingPlayMode]
+        private static void CleanupRuntimeSystems()
+        {
+            var cleanup = _runtimeCleanup;
+            _runtimeCleanup = null;
+            cleanup?.Invoke();
+        }
+
         /// <summary>
         /// Insert a system into the player loop
         /// </summary>
@@ -69,7 +76,7 @@ namespace FireAlt.Core.Utility
             loop.subSystemList = playerLoopSystemList.ToArray();
             return true;
         }
-        
+
         /// <summary>
         /// Remove a system from the player loop
         /// </summary>

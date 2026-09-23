@@ -1,8 +1,10 @@
 using UnityEngine;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Jobs;
 
 namespace FireAlt.Core
 {
+    [NoAutoStaticsCleanup]
     public static class HybridEntityUtils
     {
         private static readonly bool ShowRuntime;

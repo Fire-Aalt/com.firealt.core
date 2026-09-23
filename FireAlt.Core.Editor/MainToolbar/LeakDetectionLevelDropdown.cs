@@ -2,33 +2,23 @@ using System;
 using Unity.Collections;
 using UnityEditor;
 using UnityEditor.Toolbars;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace FireAlt.Core.Editor
 {
-    public static class LeakDetectionLevelDropdown
+    [NoAutoStaticsCleanup]
+    public static partial class LeakDetectionLevelDropdown
     {
         private const string PATH = "FireAlt/Leak Detection Level";
 
         private static Image _iconImage;
         private static TextElement _label;
         
-        static LeakDetectionLevelDropdown()
-        {
-            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
-        }
-        
-        private static void OnPlayModeStateChanged(PlayModeStateChange obj)
-        {
-            switch (obj)
-            {
-                case PlayModeStateChange.EnteredPlayMode:
-                case PlayModeStateChange.ExitingPlayMode:
-                    Refresh();
-                    break;
-            }
-        }
+        [OnEnteringPlayMode]
+        [OnExitingPlayMode]
+        private static void RefreshToolbarOnPlayModeChange() => Refresh();
         
         [MainToolbarElement(PATH, defaultDockPosition = MainToolbarDockPosition.Middle)]
         public static MainToolbarElement LeakDetectionLevel()

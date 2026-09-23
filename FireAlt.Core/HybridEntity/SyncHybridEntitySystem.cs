@@ -6,6 +6,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
+using Unity.Scripting.LifecycleManagement;
 using Unity.Transforms;
 using UnityEngine.Jobs;
 
@@ -15,9 +16,11 @@ namespace FireAlt.Core
     [WorldSystemFilter(WorldSystemFilterFlags.Editor | WorldSystemFilterFlags.Default)]
     [UpdateInGroup(typeof(BeforeTransformSystemGroup))]
     [UpdateAfter(typeof(SyncHybridEntityManagedSystem))]
+    [NoAutoStaticsCleanup]
     public partial struct SyncHybridEntitySystem : ISystem
     {
         private static readonly ProfilerMarker CleanupMarker = new("Cleanup Old Entities");
+
         private static readonly ProfilerMarker SyncMarker = new("Schedule Sync Job");
         
         [BurstCompile]

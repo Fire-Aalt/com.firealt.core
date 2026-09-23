@@ -7,11 +7,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEditor;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace FireAlt.Core.Editor.UI
 {
+    [NoAutoStaticsCleanup]
     public class SearchView : VisualElement
     {
         private static readonly UITemplate SearchViewTemplate = new(SearchWindow.RootUIPath + "SearchView");

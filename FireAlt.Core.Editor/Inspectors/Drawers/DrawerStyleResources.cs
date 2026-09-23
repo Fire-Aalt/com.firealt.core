@@ -4,13 +4,11 @@ using UnityEngine.UIElements;
 
 namespace FireAlt.Core.Editor.Inspectors
 {
+    [NoAutoStaticsCleanup]
     public static partial class DrawerStyleResources
     {
-        [NoAutoStaticsCleanup]
         public static StyleSheet CommonStyleSheet;
-        [NoAutoStaticsCleanup]
         public static StyleSheet EnumToggleButtonsStyleSheet;
-        [NoAutoStaticsCleanup]
         public static StyleSheet InlineScriptableObjectStyleSheet;
 
         [OnCodeInitializing]

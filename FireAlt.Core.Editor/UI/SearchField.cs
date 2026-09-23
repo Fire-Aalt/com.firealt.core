@@ -1,7 +1,9 @@
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.UIElements;
 
 namespace FireAlt.Core.Editor.UI
 {
+    [NoAutoStaticsCleanup]
     [UxmlElement]
     internal partial class SearchField : TextField
     {

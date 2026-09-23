@@ -24,14 +24,14 @@ namespace FireAlt.Core
         protected override void OnUpdate()
         {
             var singleton = SystemAPI.GetSingletonRW<SyncTransformToEntityContainer>().ValueRW;
-            
+
             Profiler.BeginSample("Initialize New Entities");
             var initializeQuery = SystemAPI.QueryBuilder().WithAll<HybridEntitySync>()
                 .WithAbsent<SyncTransformToEntity>().Build();
             if (!BurstUtils.IsEmpty(ref initializeQuery))
             {
                 var initEcb = new EntityCommandBuffer(Allocator.Temp);
-                
+
                 foreach (var (link, self) in SystemAPI.Query<RefRO<HybridEntitySync>>()
                              .WithNone<SyncTransformToEntity>()
                              .WithEntityAccess()
@@ -50,14 +50,14 @@ namespace FireAlt.Core
                             monoBehaviour.transformHandle, self)
                     });
                 }
-                
+
                 initEcb.Playback(EntityManager);
             }
             Profiler.EndSample();
-            
+
             Profiler.BeginSample("SetEnabled");
             var ecb = new EntityCommandBuffer(Allocator.Temp);
-            
+
             foreach (var (link, self) in SystemAPI.Query<RefRO<HybridEntitySync>>()
                          .WithEntityAccess()
                          .WithOptions(EntityQueryOptions.IncludeDisabledEntities))

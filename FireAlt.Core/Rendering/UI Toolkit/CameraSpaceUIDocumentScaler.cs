@@ -1,5 +1,6 @@
 using System.Reflection;
 using UnityEngine;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
@@ -8,6 +9,7 @@ namespace FireAlt.Core.Rendering
     [ExecuteAlways]
     [DefaultExecutionOrder(10000)]
     [RequireComponent(typeof(PanelRenderer))]
+    [NoAutoStaticsCleanup]
     public class CameraSpaceUIDocumentScaler : MonoBehaviour
     {
         private static readonly PropertyInfo PIXELS_PER_UNIT = typeof(PanelSettings).GetProperty("pixelsPerUnit",

@@ -1,4 +1,5 @@
 #if UNITY_EDITOR && BL_ANCHOR && UNITY_INCLUDE_INSTRUMENTATION
+using Unity.Scripting.LifecycleManagement;
 using BovineLabs.Anchor;
 using BovineLabs.Anchor.Debug.Toolbar;
 using BovineLabs.Core.ConfigVars;
@@ -13,7 +14,8 @@ using Button = Unity.AppUI.UI.Button;
 namespace FireAlt.Core.Editor
 {
     [Configurable]
-    public class ShowAnchorToolbarButton
+    [NoAutoStaticsCleanup]
+    public partial class ShowAnchorToolbarButton
     {
         private const string PATH = "FireAlt/Show Anchor Toolbar";
         private static readonly string Name = StringUtils.RemoveAllWhitespace(PATH);
@@ -24,11 +26,14 @@ namespace FireAlt.Core.Editor
         private static EditorToolbarButton _button;
         private static bool _isVisible;
 
-        [InitializeOnLoadMethod]
+        [OnCodeInitializing]
         public static void Init()
         {
             EditorApplication.playModeStateChanged += PlayModeChanged;
         }
+
+        [OnCodeUnloading]
+        private static void Unload() => EditorApplication.playModeStateChanged -= PlayModeChanged;
         
         private static void PlayModeChanged(PlayModeStateChange change)
         {

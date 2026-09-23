@@ -1,10 +1,12 @@
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 
 namespace FireAlt.Core.Rendering
 {
-    public static class SpriteMaterialUtility
+    [AutoStaticsCleanup]
+    public static partial class SpriteMaterialUtility
     {
-        private static readonly SecondarySpriteTexture[] Buffer = new SecondarySpriteTexture[64];
+        private static SecondarySpriteTexture[] Buffer = new SecondarySpriteTexture[64];
 
         public static Material CloneFromLookup(MaterialLookup lookup)
         {

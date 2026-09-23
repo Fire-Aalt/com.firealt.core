@@ -2,10 +2,12 @@
 //     Copyright (c) BovineLabs. All rights reserved.
 // </copyright>
 
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.UIElements;
 
 namespace FireAlt.Core.Editor.UI
 {
+    [NoAutoStaticsCleanup]
     internal class SearchViewItem : VisualElement
     {
         private static readonly UITemplate SearchItemTemplate = new(SearchWindow.RootUIPath + "SearchItem");

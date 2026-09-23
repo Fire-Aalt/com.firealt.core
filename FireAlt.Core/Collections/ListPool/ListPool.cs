@@ -3,10 +3,12 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs.LowLevel.Unsafe;
+using Unity.Scripting.LifecycleManagement;
 
 namespace FireAlt.Core.Collections
 {
-    internal static class ListPool
+    [NoAutoStaticsCleanup]
+    internal static partial class ListPool
     {
         // Retains at most about 1 MiB of pooled list buffers per worker thread.
         private const int MAX_POOL_SIZE_PER_THREAD = 32;
@@ -81,11 +83,7 @@ namespace FireAlt.Core.Collections
         /// The pool keeps one byte-list stack per Unity worker thread. Both native and unsafe pooled wrappers rent
         /// from these stacks so all element types can reuse compatible backing allocations.
         /// </remarks>
-#if !UNITY_EDITOR
-        [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration)]
-#else    
-        [UnityEditor.InitializeOnLoadMethod]
-#endif
+        [OnCodeLoaded]
         public static void Initialize()
         {
             if (Pool.Data.IsCreated)

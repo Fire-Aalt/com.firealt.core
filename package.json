@@ -1,9 +1,9 @@
 {
   "name": "com.firealt.core",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "displayName": "FireAlt Core",
   "description": "A collection of editor and runtime utils/extensions",
-  "unity": "6000.23",
+  "unity": "6000.5",
   "documentationUrl": "https://github.com/Fire-Aalt/com.firealt.core/blob/main/README.md",
 
   "author": {

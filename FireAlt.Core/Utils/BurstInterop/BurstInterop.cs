@@ -6,16 +6,18 @@ using System;
 using System.Runtime.InteropServices;
 using AOT;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine;
+using Unity.Scripting.LifecycleManagement;
 
 namespace FireAlt.Core.Utility
 {
     /// <summary>
     /// Packs managed callback arguments into a single pointer and size payload so the same unmanaged wrapper can dispatch any signature.
     /// </summary>
+    [NoAutoStaticsCleanup]
     public readonly unsafe struct BurstInterop
     {
         private static GCHandle _cachedWrapperHandle;
+
         private static IntPtr _cachedWrapperPtr;
 
         [NativeDisableUnsafePtrRestriction]
@@ -47,19 +49,6 @@ namespace FireAlt.Core.Utility
         {
             ((delegate*<void*, int, void>)managedFunctionPtr)(argumentsPtr, argumentsSize);
         }
-
-#if UNITY_EDITOR
-        [RuntimeInitializeOnLoadMethod]
-        private static void ResetStaticsOnLoad()
-        {
-            if (_cachedWrapperHandle.IsAllocated)
-            {
-                _cachedWrapperHandle.Free();
-            }
-
-            _cachedWrapperHandle = default;
-        }
-#endif
 
         private static void Initialize()
         {

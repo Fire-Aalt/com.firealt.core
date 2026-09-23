@@ -7,12 +7,14 @@ using System.Collections.Generic;
 using System.Linq;
 using FireAlt.Core.ObjectManagement;
 using UnityEditor;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace FireAlt.Core.Editor
 {
     /// <summary> An <see cref="AssetPostprocessor" /> that ensures <see cref="IUID" /> types always have a unique ID even if 2 branches merge. </summary>
+    [NoAutoStaticsCleanup]
     public class UIDProcessor : AssetPostprocessor
     {
         private static readonly HashSet<string> AlreadyProcessedAssets = new();

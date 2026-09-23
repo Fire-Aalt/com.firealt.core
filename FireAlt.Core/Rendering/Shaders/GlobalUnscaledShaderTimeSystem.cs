@@ -1,19 +1,17 @@
 using FireAlt.Core.Utility;
+using Unity.Scripting.LifecycleManagement;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.PlayerLoop;
 
 namespace FireAlt.Core.Rendering
 {
-    public static class GlobalUnscaledShaderTimeSystem
+    [NoAutoStaticsCleanup]
+    public static partial class GlobalUnscaledShaderTimeSystem
     {
         private static readonly int UnscaledTime = Shader.PropertyToID("UnscaledTime");
         
-#if UNITY_EDITOR
-        [InitializeOnLoadMethod]
-#else
-        [RuntimeInitializeOnLoadMethod]
-#endif
+        [OnCodeLoaded]
         private static void Initialize()
         {
             PlayerLoopUtils.AddPlayerLoopSystem<Update>(typeof(GlobalUnscaledShaderTimeSystem), UpdateGlobalUnscaledShaderTime);

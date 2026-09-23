@@ -1,11 +1,13 @@
 using System;
 using System.Linq;
 using UnityEditor;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace FireAlt.Core.Editor
 {
+    [NoAutoStaticsCleanup]
     public static class MainToolbarUtils
     {
         public static readonly Color EnabledColor = new(0, 1, 0, 0.15f);

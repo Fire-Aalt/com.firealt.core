@@ -1,4 +1,5 @@
 #if BL_QUILL && UNITY_EDITOR
+using Unity.Scripting.LifecycleManagement;
 using System;
 using System.Collections.Generic;
 using BovineLabs.Quill;
@@ -10,8 +11,8 @@ using UnityEngine.Pool;
 
 namespace FireAlt.Core.Quill
 {
-    [InitializeOnLoad]
-    internal static class DrawManager
+    [NoAutoStaticsCleanup]
+    internal static partial class DrawManager
     {
         private static readonly Dictionary<Type, List<IDraw>> Drawers = new(8);
         private static readonly Dictionary<Type, List<IDraw>> SelectedDrawers = new(8);
@@ -19,10 +20,18 @@ namespace FireAlt.Core.Quill
         private static readonly List<IDraw> UninitializedDrawers = new(64);
         private static readonly HashSet<GameObject> SelectedGameObjects = new(16);
         
-        static DrawManager()
+        [OnCodeInitializing]
+        private static void Initialize()
         {
             Selection.selectionChanged += SelectionChanged;
             EditorApplication.update += Update;
+        }
+
+        [OnCodeUnloading]
+        private static void Unload()
+        {
+            Selection.selectionChanged -= SelectionChanged;
+            EditorApplication.update -= Update;
         }
         
         public static void Register(IDraw drawer)
