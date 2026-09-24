@@ -162,7 +162,6 @@ namespace FireAlt.Core.Tests
             }
             finally
             {
-                source.Dispose();
                 heap.Dispose();
             }
         }
