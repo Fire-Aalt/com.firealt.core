@@ -3,6 +3,7 @@ using FireAlt.Core.Utility;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine.Profiling;
+using System.Diagnostics.CodeAnalysis;
 
 namespace FireAlt.Core
 {
@@ -20,7 +21,9 @@ namespace FireAlt.Core
         {
             SystemAPI.GetSingleton<SyncTransformToEntityContainer>().Dispose();
         }
-        
+
+        [SuppressMessage("FireAlt.Analyzers", "FA1001", Justification = "Init logic which is rare")]
+        [SuppressMessage("FireAlt.Analyzers", "FA1002", Justification = "Init logic which is rare")]
         protected override void OnUpdate()
         {
             var singleton = SystemAPI.GetSingletonRW<SyncTransformToEntityContainer>().ValueRW;
