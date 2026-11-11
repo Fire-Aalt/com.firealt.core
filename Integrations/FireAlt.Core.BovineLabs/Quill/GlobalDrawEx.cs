@@ -78,18 +78,6 @@ namespace FireAlt.Core.Quill
         }
         
         // Path
-
-        public static void Trajectory(Transform origin, float defaultGravity, PhysicsBodyAuthoring physicsBodyAuthoring, 
-            float initialVelocity, float angleDeg, float angleDivergence, Color color)
-        {
-            var gravity = defaultGravity;
-            if (physicsBodyAuthoring != null)
-            {
-                gravity *= physicsBodyAuthoring.GravityFactor;
-            }
-            
-            Trajectory(origin.position, gravity, initialVelocity, angleDeg, angleDivergence, color);
-        }
         
         [BurstCompile]
         public static void Trajectory(in float3 initialPos, float gravity, float initialVelocity,
