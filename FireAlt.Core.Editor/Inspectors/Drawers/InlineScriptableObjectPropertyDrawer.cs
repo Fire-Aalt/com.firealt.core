@@ -14,8 +14,8 @@ namespace FireAlt.Core.Editor.Inspectors
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
             var container = new VisualElement();
-            container.styleSheets.Add(DrawerStyleResources.CommonStyleSheet);
-            container.styleSheets.Add(DrawerStyleResources.InlineScriptableObjectStyleSheet);
+            container.TryAddStyleSheet(DrawerStyleResources.CommonStyleSheet);
+            container.TryAddStyleSheet(DrawerStyleResources.InlineScriptableObjectStyleSheet);
             container.AddToClassList("kras-inline-so-root");
 
             if (property.propertyType != SerializedPropertyType.ObjectReference)

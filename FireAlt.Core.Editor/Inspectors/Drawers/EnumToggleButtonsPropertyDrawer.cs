@@ -68,7 +68,7 @@ namespace FireAlt.Core.Editor.Inspectors
             var allFlags = CalculateAllFlags(enumValues);
 
             var root = new EnumToggleButtonsField(property.displayName, attribute.HideLabel);
-            root.styleSheets.Add(DrawerStyleResources.EnumToggleButtonsStyleSheet);
+            root.TryAddStyleSheet(DrawerStyleResources.EnumToggleButtonsStyleSheet);
             var buttonsContainer = root.InputElement;
             buttonsContainer.AddToClassList("kras-enum-toggle-container");
 

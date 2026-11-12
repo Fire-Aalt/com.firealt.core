@@ -136,48 +136,6 @@ namespace FireAlt.Core.Editor
             AssetDatabase.Refresh();
         }
 
-        /// <summary>
-        /// Searches in "Editor Resources"
-        /// </summary>
-        public static T LoadEditorResource<T>(string relativeFilePath, string rootFolderValidationName) where T : Object
-        {
-            const string editorResources = "Editor Default Resources";
-            
-            var guids = AssetDatabase.FindAssets("\"" + editorResources + "\"");
-            var objectList = new List<Object>(guids.Length);
-            
-            foreach (var guid in guids)
-            {
-                var editorResourcesFolderPath = AssetDatabase.GUIDToAssetPath(guid);
-                var rootDirectoryName = Directory.GetParent(editorResourcesFolderPath)?.Name;
-                
-                if (rootDirectoryName != rootFolderValidationName)
-                {
-                    continue;
-                }
-
-                var assetPath = Path.Combine(editorResourcesFolderPath, relativeFilePath);
-
-                if (AssetDatabase.AssetPathExists(assetPath))
-                {
-                    var asset = AssetDatabase.LoadAssetAtPath(assetPath, typeof(Object));
-                    objectList.Add(asset);
-                }
-            }
-
-            if (objectList.Count == 1)
-            {
-                var obj = objectList[0] as T;
-                return obj;
-            }
-
-            if (objectList.Count > 1)
-            {
-                throw new Exception($"Found {objectList.Count} objects with relative path: {rootFolderValidationName}/Editor Default Resources/{relativeFilePath}");
-            }
-            throw new Exception($"Not found anything at path: {rootFolderValidationName}/Editor Default Resources/{relativeFilePath}");
-        }
-        
         public static Object[] LoadAllAssetsAtPath(string path)
         {
             if (path.EndsWith("/"))
