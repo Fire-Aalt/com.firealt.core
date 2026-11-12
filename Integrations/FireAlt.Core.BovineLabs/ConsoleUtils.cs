@@ -1,4 +1,3 @@
-using BovineLabs.Essence;
 using Unity.Entities;
 
 namespace FireAlt.Core
@@ -30,10 +29,10 @@ namespace FireAlt.Core
         }
 
 #if BL_ESSENSE
-        public static IntrinsicWriter.Lookup GetIntrinsicLookup(ref SystemState state)
+        public static BovineLabs.Essence.IntrinsicWriter.Lookup GetIntrinsicLookup(ref SystemState state)
         {
-            var lookup = new IntrinsicWriter.Lookup();
-            var data = new IntrinsicWriter.SingletonData();
+            var lookup = new BovineLabs.Essence.IntrinsicWriter.Lookup();
+            var data = new BovineLabs.Essence.IntrinsicWriter.SingletonData();
             lookup.Create(ref state);
             data.Create(ref state);
          
