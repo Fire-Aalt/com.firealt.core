@@ -18,7 +18,7 @@ namespace FireAlt.Core.Tests
         {
             Map = new EntitySpatialSphereMap(SpatialSphereMapConfig.Default);
             _builder = new EntitySpatialSphereMapBuilder(ref CheckedStateRef,
-                GetEntityQuery(typeof(LocalTransform), typeof(SpatialSphereShape)));
+                SystemAPI.QueryBuilder().WithAll<LocalTransform, SpatialSphereShape>().Build());
         }
 
         protected override void OnUpdate()
