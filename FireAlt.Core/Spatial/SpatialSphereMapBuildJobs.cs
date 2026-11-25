@@ -49,6 +49,7 @@ namespace FireAlt.Core
         [ReadOnly] public NativeArray<float3> Positions;
         public NativeList<uint> Keys;
         public NativeList<float4> Spheres;
+        public NativeList<float> HalfHeights;
         public NativeList<int> Indices;
         public NativeList<byte> Bins;
         public NativeList<int> Buckets;
@@ -59,6 +60,7 @@ namespace FireAlt.Core
             var count = Positions.Length;
             Keys.ResizeUninitialized(count);
             Spheres.ResizeUninitialized(count);
+            HalfHeights.ResizeUninitialized(count);
             Indices.ResizeUninitialized(count);
             Bins.ResizeUninitialized(count);
             Buckets.ResizeUninitialized(count);
@@ -309,12 +311,15 @@ namespace FireAlt.Core
     {
         [ReadOnly] public NativeArray<float3> Positions;
         [ReadOnly] public NativeArray<float> Radii;
+        [ReadOnly] public NativeArray<float> InputHalfHeights;
         [ReadOnly] public NativeArray<int> Buckets;
         [ReadOnly] public NativeArray<uint> UnsortedKeys;
-        [ReadOnly] public NativeReference<SpatialSphereMapHeader> Header;
+        public NativeArray<SpatialSphereMapLevel> Levels;
+        public NativeReference<SpatialSphereMapHeader> Header;
         public NativeArray<int> Starts;
         public NativeArray<uint> Keys;
         public NativeArray<float4> Spheres;
+        public NativeArray<float> HalfHeights;
         public NativeArray<int> Indices;
 
         public void Execute()
@@ -347,25 +352,40 @@ namespace FireAlt.Core
 
             var cursors = new NativeArray<int>(bucketCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             NativeArray<int>.Copy(Starts, cursors, bucketCount);
-            var looseCursor = Header.Value.GridCount;
+            var header = Header.Value;
+            var looseCursor = header.GridCount;
+            var capsules = InputHalfHeights.Length != 0;
             for (var i = 0; i < count; i++)
             {
                 var bucket = Buckets[i];
+                var halfHeight = capsules ? math.max(InputHalfHeights[i], 0f) : 0f;
                 int slot;
                 if (bucket < 0)
                 {
                     slot = looseCursor++;
                     Keys[slot] = 0;
+                    header.LooseMaxHalfHeight = math.max(header.LooseMaxHalfHeight, halfHeight);
                 }
                 else
                 {
                     slot = cursors[bucket]++;
-                    Keys[slot] = UnsortedKeys[i];
+                    var key = UnsortedKeys[i];
+                    Keys[slot] = key;
+                    if (halfHeight > 0f)
+                    {
+                        var levelIndex = (int)(key >> (SpatialSphereMap.CellBits * 2));
+                        var level = Levels[levelIndex];
+                        level.MaxHalfHeight = math.max(level.MaxHalfHeight, halfHeight);
+                        Levels[levelIndex] = level;
+                    }
                 }
 
                 Spheres[slot] = new float4(Positions[i], math.max(Radii[i], 0f));
+                HalfHeights[slot] = halfHeight;
                 Indices[slot] = i;
             }
+
+            Header.Value = header;
         }
     }
 }

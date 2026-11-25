@@ -11,12 +11,13 @@ using Unity.Mathematics;
 using Unity.PerformanceTesting;
 using Unity.Physics;
 using Random = Unity.Mathematics.Random;
+using CapsuleCollider = Unity.Physics.CapsuleCollider;
 using SphereCollider = Unity.Physics.SphereCollider;
 
 namespace FireAlt.Core.Tests
 {
     /// <summary>
-    /// Compares SpatialSphereMap with the Unity Physics broadphase on sphere-only worlds.
+    /// Compares SpatialSphereMap with the Unity Physics broadphase on sphere worlds, one of which adds upright capsules.
     /// "Flat" is the same map forced to one level, which is a plain grid padded by the global max radius.
     /// </summary>
     public class SpatialSphereMapBenchmarks
@@ -29,6 +30,7 @@ namespace FireAlt.Core.Tests
         private const int LargeQueryCount = 256;
         private const float LargeQueryRadius = 8f;
         private const float BaseRadius = 0.5f;
+        private const float GiantHalfHeightPerRadius = 2f;
 
         private enum Scenario
         {
@@ -37,6 +39,7 @@ namespace FireAlt.Core.Tests
             CrowdPlusEightBosses,
             CrowdPlusTenPercentDouble,
             ContinuousSizes,
+            CrowdPlusEightGiants,
         }
 
         private StringBuilder _report;
@@ -79,16 +82,17 @@ namespace FireAlt.Core.Tests
             {
                 var positions = new NativeArray<float3>(count, Allocator.Persistent);
                 var radii = new NativeArray<float>(count, Allocator.Persistent);
+                var halfHeights = new NativeArray<float>(count, Allocator.Persistent);
                 var directions = new NativeArray<float3>(count, Allocator.Persistent);
                 var largeCenters = new NativeArray<float3>(1, Allocator.Persistent);
                 var results = new NativeArray<int>(count, Allocator.Persistent);
-                Generate(scenario, positions, radii, directions, largeCenters);
+                Generate(scenario, positions, radii, halfHeights, directions, largeCenters);
                 foreach (var cellScale in new[] { 1f, 1.5f, 2f, 3f, 4f })
                 {
                     var config = SpatialSphereMapConfig.Default;
                     config.CellScale = cellScale;
                     var map = new SpatialSphereMap(config);
-                    var build = Measure(() => map.Build(positions, radii, default).Complete());
+                    var build = Measure(() => map.Build(positions, radii, halfHeights, default).Complete());
                     var cast = Measure(() => new MapCastJob
                     {
                         Map = map.AsReadOnly(), Positions = positions, Radii = radii, Directions = directions,
@@ -108,6 +112,7 @@ namespace FireAlt.Core.Tests
                 results.Dispose();
                 largeCenters.Dispose();
                 directions.Dispose();
+                halfHeights.Dispose();
                 radii.Dispose();
                 positions.Dispose();
             }
@@ -121,6 +126,7 @@ namespace FireAlt.Core.Tests
         {
             var positions = new NativeArray<float3>(count, Allocator.Persistent);
             var radii = new NativeArray<float>(count, Allocator.Persistent);
+            var halfHeights = new NativeArray<float>(count, Allocator.Persistent);
             var directions = new NativeArray<float3>(count, Allocator.Persistent);
             var largeCenters = new NativeArray<float3>(LargeQueryCount, Allocator.Persistent);
             var largeRadii = new NativeArray<float>(LargeQueryCount, Allocator.Persistent);
@@ -129,6 +135,12 @@ namespace FireAlt.Core.Tests
             var mapResults = new NativeArray<int>(count, Allocator.Persistent);
             var buildStaticTree = new NativeReference<int>(1, Allocator.Persistent);
             var collider = SphereCollider.Create(new SphereGeometry { Radius = 1f });
+            var capsule = CapsuleCollider.Create(new CapsuleGeometry
+            {
+                Vertex0 = new float3(0f, -GiantHalfHeightPerRadius, 0f),
+                Vertex1 = new float3(0f, GiantHalfHeightPerRadius, 0f),
+                Radius = 1f,
+            });
             var world = new PhysicsWorld(1, count, 0);
             var flatConfig = SpatialSphereMapConfig.Default;
             flatConfig.MaxLevels = 1;
@@ -138,7 +150,7 @@ namespace FireAlt.Core.Tests
 
             try
             {
-                Generate(scenario, positions, radii, directions, largeCenters);
+                Generate(scenario, positions, radii, halfHeights, directions, largeCenters);
                 var bodies = world.DynamicBodies;
                 var velocities = world.MotionVelocities;
                 var motions = world.MotionDatas;
@@ -147,7 +159,7 @@ namespace FireAlt.Core.Tests
                     bodies[i] = new RigidBody
                     {
                         WorldFromBody = new RigidTransform(quaternion.identity, positions[i]),
-                        Collider = collider,
+                        Collider = halfHeights[i] > 0f ? capsule : collider,
                         Entity = Entity.Null,
                         Scale = radii[i],
                     };
@@ -161,8 +173,8 @@ namespace FireAlt.Core.Tests
                 var name = scenario.ToString();
                 var bvhBuild = Measure(() => world.CollisionWorld.ScheduleBuildBroadphaseJobs(ref world, 1f / 60f,
                     float3.zero, buildStaticTree.AsReadOnly(), default).Complete());
-                var flatBuild = Measure(() => flat.Build(positions, radii, default).Complete());
-                var mapBuild = Measure(() => map.Build(positions, radii, default).Complete());
+                var flatBuild = Measure(() => flat.Build(positions, radii, halfHeights, default).Complete());
+                var mapBuild = Measure(() => map.Build(positions, radii, halfHeights, default).Complete());
                 var readOnly = map.AsReadOnly();
                 var shape = $"{readOnly.LevelCount} + {readOnly.LooseCount}";
                 Row(name, count, "Build", bvhBuild, flatBuild, mapBuild, shape);
@@ -229,6 +241,7 @@ namespace FireAlt.Core.Tests
                 map.Dispose();
                 flat.Dispose();
                 world.Dispose();
+                capsule.Dispose();
                 collider.Dispose();
                 buildStaticTree.Dispose();
                 mapResults.Dispose();
@@ -237,13 +250,14 @@ namespace FireAlt.Core.Tests
                 largeRadii.Dispose();
                 largeCenters.Dispose();
                 directions.Dispose();
+                halfHeights.Dispose();
                 radii.Dispose();
                 positions.Dispose();
             }
         }
 
         private static void Generate(Scenario scenario, NativeArray<float3> positions, NativeArray<float> radii,
-            NativeArray<float3> directions, NativeArray<float3> largeCenters)
+            NativeArray<float> halfHeights, NativeArray<float3> directions, NativeArray<float3> largeCenters)
         {
             var random = new Random(0x51A7u + (uint)scenario * 977u + (uint)positions.Length);
             var count = positions.Length;
@@ -251,10 +265,15 @@ namespace FireAlt.Core.Tests
             for (var i = 0; i < count; i++)
             {
                 var radius = BaseRadius * random.NextFloat(0.88f, 1.12f);
+                var halfHeight = 0f;
                 switch (scenario)
                 {
                     case Scenario.CrowdPlusEightBosses when i < 8:
                         radius *= 4f;
+                        break;
+                    case Scenario.CrowdPlusEightGiants when i < 8:
+                        radius *= 4f;
+                        halfHeight = radius * GiantHalfHeightPerRadius;
                         break;
                     case Scenario.CrowdPlusTenPercentDouble when i % 10 == 0:
                         radius *= 2f;
@@ -265,6 +284,7 @@ namespace FireAlt.Core.Tests
                 }
 
                 radii[i] = radius;
+                halfHeights[i] = halfHeight;
                 footprint += math.PI * radius * radius;
             }
 
@@ -275,7 +295,7 @@ namespace FireAlt.Core.Tests
             {
                 var height = scenario == Scenario.Pile ? random.NextFloat(0f, layers * 2f * BaseRadius) : 0f;
                 var ground = random.NextFloat2(-halfSize, halfSize);
-                positions[i] = new float3(ground.x, radii[i] + height, ground.y);
+                positions[i] = new float3(ground.x, radii[i] + halfHeights[i] + height, ground.y);
                 var direction = random.NextFloat2Direction();
                 directions[i] = new float3(direction.x, 0f, direction.y);
             }

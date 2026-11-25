@@ -11,6 +11,12 @@ namespace FireAlt.Core
         public int Index;
         public float3 Center;
         public float Radius;
+
+        /// <summary> How far the sphere is swept up and down the world Y axis. 0 for a plain sphere. </summary>
+        public float HalfHeight;
+
+        /// <summary> Point of the shape's vertical segment nearest to <paramref name="point" />. </summary>
+        public float3 ClosestOnAxis(float3 point) => SpatialCapsule.ClosestOnAxis(Center, HalfHeight, point);
     }
 
     public struct SpatialSphereEntity
@@ -19,6 +25,7 @@ namespace FireAlt.Core
         public int Index;
         public float3 Center;
         public float Radius;
+        public float HalfHeight;
 
         public void Deconstruct(out Entity entity, out float3 center)
         {
@@ -123,24 +130,11 @@ namespace FireAlt.Core
             foreach (var sphere in new AabbEnumerator(map, math.min(origin, end) - radius,
                          math.max(origin, end) + radius))
             {
-                var offset = origin - sphere.Center;
-                var reach = radius + sphere.Radius;
-                var c = math.lengthsq(offset) - reach * reach;
-                var distance = 0f;
-                if (c > 0f)
+                var distance = SpatialCapsule.CastDistance(origin - sphere.Center, radius + sphere.Radius,
+                    sphere.HalfHeight, direction);
+                if (distance > maxDistance)
                 {
-                    var b = math.dot(offset, direction);
-                    var discriminant = b * b - c;
-                    if (b >= 0f || discriminant < 0f)
-                    {
-                        continue;
-                    }
-
-                    distance = -b - math.sqrt(discriminant);
-                    if (distance > maxDistance)
-                    {
-                        continue;
-                    }
+                    continue;
                 }
 
                 // Ties go to the lower index so the result does not depend on how the map was laid out.
@@ -158,13 +152,15 @@ namespace FireAlt.Core
                 return false;
             }
 
-            var normal = math.normalizesafe(origin + direction * best - bestSphere.Center, -direction);
+            var center = origin + direction * best;
+            var axisPoint = bestSphere.ClosestOnAxis(center);
+            var normal = math.normalizesafe(center - axisPoint, -direction);
             hit = new SpatialSphereCastHit
             {
                 Index = bestSphere.Index,
                 Distance = best,
                 Normal = normal,
-                Position = bestSphere.Center + normal * bestSphere.Radius,
+                Position = axisPoint + normal * bestSphere.Radius,
             };
             return true;
         }
@@ -190,6 +186,7 @@ namespace FireAlt.Core
             private NativeArray<int>.ReadOnly _starts;
             private NativeArray<uint>.ReadOnly _keys;
             private NativeArray<float4>.ReadOnly _spheres;
+            private NativeArray<float>.ReadOnly _halfHeights;
             private NativeArray<int>.ReadOnly _indices;
             private NativeArray<SpatialSphereMapLevel>.ReadOnly _levels;
             private readonly SpatialSphereMapHeader _header;
@@ -207,12 +204,14 @@ namespace FireAlt.Core
             private int _slotEnd;
             private uint _key;
             private bool _loose;
+            private bool _capsules;
 
             internal AabbEnumerator(in SpatialSphereMap.ReadOnly map, float3 min, float3 max)
             {
                 _starts = map.Starts.AsReadOnly();
                 _keys = map.Keys.AsReadOnly();
                 _spheres = map.Spheres.AsReadOnly();
+                _halfHeights = map.HalfHeights.AsReadOnly();
                 _indices = map.Indices.AsReadOnly();
                 _levels = map.Levels.AsReadOnly();
                 _header = map.Header.Value;
@@ -229,6 +228,7 @@ namespace FireAlt.Core
                 _slotEnd = 0;
                 _key = 0;
                 _loose = false;
+                _capsules = false;
             }
 
             public SpatialSphereHit Current => _current;
@@ -248,7 +248,14 @@ namespace FireAlt.Core
                         }
 
                         var sphere = _spheres[slot];
+                        var halfHeight = 0f;
                         var outside = math.max(math.max(_min - sphere.xyz, sphere.xyz - _max), 0f);
+                        if (_capsules)
+                        {
+                            halfHeight = _halfHeights[slot];
+                            outside.y = math.max(outside.y - halfHeight, 0f);
+                        }
+
                         if (math.lengthsq(outside) > sphere.w * sphere.w)
                         {
                             continue;
@@ -259,6 +266,7 @@ namespace FireAlt.Core
                             Index = _indices[slot],
                             Center = sphere.xyz,
                             Radius = sphere.w,
+                            HalfHeight = halfHeight,
                         };
                         return true;
                     }
@@ -304,6 +312,7 @@ namespace FireAlt.Core
                         continue;
                     }
 
+                    _capsules = level.MaxHalfHeight > 0f;
                     var first = (int2)math.floor(math.clamp(low, 0f, maxCell));
                     var last = (int2)math.floor(math.clamp(high, 0f, maxCell));
                     _x0 = first.x;
@@ -316,6 +325,7 @@ namespace FireAlt.Core
                 }
 
                 _loose = true;
+                _capsules = _header.LooseMaxHalfHeight > 0f;
                 _slot = _header.GridCount;
                 _slotEnd = _header.Count;
                 return _slot < _slotEnd;
@@ -356,7 +366,8 @@ namespace FireAlt.Core
                 {
                     var sphere = _spheres.Current;
                     var reach = _radius + sphere.Radius;
-                    if (math.distancesq(sphere.Center, _center) <= reach * reach)
+                    var nearest = sphere.HalfHeight > 0f ? sphere.ClosestOnAxis(_center) : sphere.Center;
+                    if (math.distancesq(nearest, _center) <= reach * reach)
                     {
                         return true;
                     }
@@ -373,6 +384,7 @@ namespace FireAlt.Core
             private readonly float3 _center;
             private readonly quaternion _inverseRotation;
             private readonly float3 _halfExtents;
+            private readonly float3 _localUp;
 
             internal BoxEnumerator(AabbEnumerator spheres, float3 center, quaternion inverseRotation,
                 float3 halfExtents)
@@ -381,6 +393,7 @@ namespace FireAlt.Core
                 _center = center;
                 _inverseRotation = inverseRotation;
                 _halfExtents = halfExtents;
+                _localUp = math.rotate(inverseRotation, math.up());
             }
 
             public SpatialSphereHit Current => _spheres.Current;
@@ -393,8 +406,8 @@ namespace FireAlt.Core
                 {
                     var sphere = _spheres.Current;
                     var local = math.rotate(_inverseRotation, sphere.Center - _center);
-                    var outside = math.max(math.abs(local) - _halfExtents, 0f);
-                    if (math.lengthsq(outside) <= sphere.Radius * sphere.Radius)
+                    var distanceSq = SpatialCapsule.BoxDistanceSq(local, _localUp, sphere.HalfHeight, _halfExtents);
+                    if (distanceSq <= sphere.Radius * sphere.Radius)
                     {
                         return true;
                     }
@@ -427,6 +440,7 @@ namespace FireAlt.Core
                         Index = sphere.Index,
                         Center = sphere.Center,
                         Radius = sphere.Radius,
+                        HalfHeight = sphere.HalfHeight,
                     };
                 }
             }

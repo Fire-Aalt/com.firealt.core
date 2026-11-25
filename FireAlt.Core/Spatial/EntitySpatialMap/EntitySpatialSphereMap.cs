@@ -14,14 +14,21 @@ namespace FireAlt.Core
     {
         public float3 Center;
         public float Radius;
+
+        /// <summary>
+        /// Sweeps the sphere this far up and down the world Y axis into an upright capsule, whatever the entity's
+        /// rotation. Scaled like the radius. 0 for a sphere.
+        /// </summary>
+        public float HalfHeight;
     }
 
-    /// <summary> A <see cref="SpatialSphereMap" /> plus the entities, centers and radii it was built from. </summary>
+    /// <summary> A <see cref="SpatialSphereMap" /> plus the entities, centers, radii and half-heights it was built from. </summary>
     public struct EntitySpatialSphereMap : IDisposable
     {
         public SpatialSphereMap Spatial;
         public NativeList<float3> Positions;
         public NativeList<float> Radii;
+        public NativeList<float> HalfHeights;
         public NativeList<Entity> Entities;
 
         public EntitySpatialSphereMap(SpatialSphereMapConfig config, Allocator allocator = Allocator.Persistent)
@@ -29,6 +36,7 @@ namespace FireAlt.Core
             Spatial = new SpatialSphereMap(config, allocator);
             Positions = new NativeList<float3>(64, allocator);
             Radii = new NativeList<float>(64, allocator);
+            HalfHeights = new NativeList<float>(64, allocator);
             Entities = new NativeList<Entity>(64, allocator);
         }
 
@@ -39,6 +47,7 @@ namespace FireAlt.Core
             Spatial.Dispose();
             Positions.Dispose();
             Radii.Dispose();
+            HalfHeights.Dispose();
             Entities.Dispose();
         }
 
@@ -89,6 +98,7 @@ namespace FireAlt.Core
             var count = _query.CalculateEntityCount();
             map.Positions.ResizeUninitialized(count);
             map.Radii.ResizeUninitialized(count);
+            map.HalfHeights.ResizeUninitialized(count);
             map.Entities.ResizeUninitialized(count);
 
             var firstEntityIndices = _query.CalculateBaseEntityIndexArrayAsync(state.WorldUpdateAllocator,
@@ -101,10 +111,12 @@ namespace FireAlt.Core
                 FirstEntityIndices = firstEntityIndices,
                 Positions = map.Positions.AsArray(),
                 Radii = map.Radii.AsArray(),
+                HalfHeights = map.HalfHeights.AsArray(),
                 Entities = map.Entities.AsArray(),
             }.ScheduleParallel(_query, indicesDependency);
 
-            return map.Spatial.Build(map.Positions.AsArray(), map.Radii.AsArray(), dependency);
+            return map.Spatial.Build(map.Positions.AsArray(), map.Radii.AsArray(), map.HalfHeights.AsArray(),
+                dependency);
         }
 
         [BurstCompile]
@@ -116,6 +128,7 @@ namespace FireAlt.Core
             [ReadOnly] public NativeArray<int> FirstEntityIndices;
             [NativeDisableParallelForRestriction] public NativeArray<float3> Positions;
             [NativeDisableParallelForRestriction] public NativeArray<float> Radii;
+            [NativeDisableParallelForRestriction] public NativeArray<float> HalfHeights;
             [NativeDisableParallelForRestriction] public NativeArray<Entity> Entities;
 
             public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask,
@@ -132,6 +145,7 @@ namespace FireAlt.Core
                     var shape = shapes[i];
                     Positions[index] = transform.TransformPoint(shape.Center);
                     Radii[index] = shape.Radius * transform.Scale;
+                    HalfHeights[index] = shape.HalfHeight * transform.Scale;
                     Entities[index] = entities[i];
                     index++;
                 }

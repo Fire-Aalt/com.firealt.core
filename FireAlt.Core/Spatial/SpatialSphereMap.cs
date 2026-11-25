@@ -42,6 +42,9 @@ namespace FireAlt.Core
         public float CellSize;
         public float InvCellSize;
         public float MaxRadius;
+
+        /// <summary> 0 when the level holds no capsules, which lets queries skip reading half-heights. </summary>
+        public float MaxHalfHeight;
         public int2 MaxCell;
         public int Count;
     }
@@ -52,10 +55,13 @@ namespace FireAlt.Core
         public int BucketMask;
         public int GridCount;
         public int Count;
+        public float LooseMaxHalfHeight;
     }
 
     /// <summary>
     /// Spatial hash for spheres of mixed sizes on the XZ plane. Every sphere is stored once, by its center.
+    /// A sphere can be given a half-height, which sweeps it along the world Y axis into an upright capsule; the grid
+    /// only sees the footprint, so heights cost nothing until a query tests the shape itself.
     /// Radii are binned by powers of two above the smallest radius of the build, and the populated bins become
     /// grids whose cell size and query padding come from their own contents, so large spheres never widen the
     /// search for small ones. Rebuilt from scratch on every Build; query it through
@@ -71,6 +77,7 @@ namespace FireAlt.Core
         private NativeList<int> _starts;
         private NativeList<uint> _keys;
         private NativeList<float4> _spheres;
+        private NativeList<float> _halfHeights;
         private NativeList<int> _indices;
         private NativeList<SpatialSphereMapLevel> _levels;
         private NativeReference<SpatialSphereMapHeader> _header;
@@ -80,6 +87,7 @@ namespace FireAlt.Core
         private NativeArray<SpatialSphereMapChunkBounds> _chunkBounds;
         private NativeArray<SpatialSphereMapChunkBins> _chunkBins;
         private NativeArray<int> _binLevels;
+        private NativeArray<float> _noHalfHeights;
         private readonly SpatialSphereMapConfig _config;
 
         public SpatialSphereMap(SpatialSphereMapConfig config, Allocator allocator = Allocator.Persistent)
@@ -90,6 +98,7 @@ namespace FireAlt.Core
             _starts.Add(0);
             _keys = new NativeList<uint>(64, allocator);
             _spheres = new NativeList<float4>(64, allocator);
+            _halfHeights = new NativeList<float>(64, allocator);
             _indices = new NativeList<int>(64, allocator);
             _levels = new NativeList<SpatialSphereMapLevel>(MaxLevelCount, allocator);
             _header = new NativeReference<SpatialSphereMapHeader>(allocator);
@@ -99,6 +108,7 @@ namespace FireAlt.Core
             _chunkBounds = new NativeArray<SpatialSphereMapChunkBounds>(JobsUtility.ThreadIndexCount, allocator);
             _chunkBins = new NativeArray<SpatialSphereMapChunkBins>(JobsUtility.ThreadIndexCount, allocator);
             _binLevels = new NativeArray<int>(MaxLevelCount, allocator);
+            _noHalfHeights = new NativeArray<float>(0, allocator);
         }
 
         public bool IsCreated => _starts.IsCreated;
@@ -110,6 +120,7 @@ namespace FireAlt.Core
             _starts.Dispose();
             _keys.Dispose();
             _spheres.Dispose();
+            _halfHeights.Dispose();
             _indices.Dispose();
             _levels.Dispose();
             _header.Dispose();
@@ -119,6 +130,7 @@ namespace FireAlt.Core
             _chunkBounds.Dispose();
             _chunkBins.Dispose();
             _binLevels.Dispose();
+            _noHalfHeights.Dispose();
         }
 
         public JobHandle Build(NativeList<float3> positions, NativeList<float> radii, JobHandle dependency)
@@ -126,8 +138,26 @@ namespace FireAlt.Core
             return Build(positions.AsDeferredJobArray(), radii.AsDeferredJobArray(), dependency);
         }
 
+        public JobHandle Build(NativeList<float3> positions, NativeList<float> radii, NativeList<float> halfHeights,
+            JobHandle dependency)
+        {
+            return Build(positions.AsDeferredJobArray(), radii.AsDeferredJobArray(), halfHeights.AsDeferredJobArray(),
+                dependency);
+        }
+
         /// <summary> Deferred arrays are supported. Both inputs are only read while the jobs run. </summary>
         public JobHandle Build(NativeArray<float3> positions, NativeArray<float> radii, JobHandle dependency)
+        {
+            return Build(positions, radii, _noHalfHeights, dependency);
+        }
+
+        /// <summary>
+        /// Builds upright capsules: each sphere is swept by its half-height up and down the world Y axis.
+        /// An empty <paramref name="halfHeights" /> builds plain spheres. Deferred arrays are supported, and the
+        /// inputs are only read while the jobs run.
+        /// </summary>
+        public JobHandle Build(NativeArray<float3> positions, NativeArray<float> radii, NativeArray<float> halfHeights,
+            JobHandle dependency)
         {
             var chunks = math.clamp(JobsUtility.JobWorkerCount, 1, _chunkBounds.Length);
             dependency = new SpatialSphereMapPrepareJob
@@ -135,6 +165,7 @@ namespace FireAlt.Core
                 Positions = positions,
                 Keys = _keys,
                 Spheres = _spheres,
+                HalfHeights = _halfHeights,
                 Indices = _indices,
                 Bins = _bins,
                 Buckets = _buckets,
@@ -183,12 +214,15 @@ namespace FireAlt.Core
             {
                 Positions = positions,
                 Radii = radii,
+                InputHalfHeights = halfHeights,
+                Levels = _levels.AsDeferredJobArray(),
                 Buckets = _buckets.AsDeferredJobArray(),
                 UnsortedKeys = _unsortedKeys.AsDeferredJobArray(),
                 Header = _header,
                 Starts = _starts.AsDeferredJobArray(),
                 Keys = _keys.AsDeferredJobArray(),
                 Spheres = _spheres.AsDeferredJobArray(),
+                HalfHeights = _halfHeights.AsDeferredJobArray(),
                 Indices = _indices.AsDeferredJobArray(),
             }.Schedule(dependency);
         }
@@ -200,6 +234,7 @@ namespace FireAlt.Core
                 Starts = _starts,
                 Keys = _keys,
                 Spheres = _spheres,
+                HalfHeights = _halfHeights,
                 Indices = _indices,
                 Levels = _levels,
                 Header = _header,
@@ -224,6 +259,7 @@ namespace FireAlt.Core
             [ReadOnly] internal NativeList<int> Starts;
             [ReadOnly] internal NativeList<uint> Keys;
             [ReadOnly] internal NativeList<float4> Spheres;
+            [ReadOnly] internal NativeList<float> HalfHeights;
             [ReadOnly] internal NativeList<int> Indices;
             [ReadOnly] internal NativeList<SpatialSphereMapLevel> Levels;
             [ReadOnly] internal NativeReference<SpatialSphereMapHeader> Header;
