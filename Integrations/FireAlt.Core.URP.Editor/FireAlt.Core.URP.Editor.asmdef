@@ -1,0 +1,26 @@
+{
+    "name": "FireAlt.Core.URP.Editor",
+    "rootNamespace": "FireAlt.Core.URP.Editor",
+    "references": [
+        "FireAlt.Core.URP"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "FIREALT_URP"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "",
+            "define": "FIREALT_URP"
+        }
+    ],
+    "noEngineReferences": false
+}
